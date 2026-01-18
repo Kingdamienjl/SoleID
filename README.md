@@ -358,8 +358,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 Contact & Support
 
-- **🐛 Issues**: [Report bugs and request features](https://github.com/yourusername/SoleID/issues)
-- **💬 Discussions**: [Join community discussions](https://github.com/yourusername/SoleID/discussions)
+- **🐛 Issues**: [Report bugs and request features](https://github.com/Kingdamienjl/SoleID/issues)
+- **💬 Discussions**: [Join community discussions](https://github.com/Kingdamienjl/SoleID/discussions)
 - **📧 Email**: For direct contact and collaboration inquiries
 - **📖 Documentation**: Comprehensive guides available in `/docs`
 
@@ -371,8 +371,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 *Built with ❤️ by the sneaker community, for the sneaker community*
 
-[![Star this repo](https://img.shields.io/github/stars/yourusername/SoleID?style=social)](https://github.com/yourusername/SoleID)
-[![Fork this repo](https://img.shields.io/github/forks/yourusername/SoleID?style=social)](https://github.com/yourusername/SoleID/fork)
-[![Follow updates](https://img.shields.io/github/watchers/yourusername/SoleID?style=social)](https://github.com/yourusername/SoleID)
+[![Star this repo](https://img.shields.io/github/stars/Kingdamienjl/SoleID?style=social)](https://github.com/Kingdamienjl/SoleID)
+[![Fork this repo](https://img.shields.io/github/forks/Kingdamienjl/SoleID?style=social)](https://github.com/Kingdamienjl/SoleID/fork)
+[![Follow updates](https://img.shields.io/github/watchers/Kingdamienjl/SoleID?style=social)](https://github.com/Kingdamienjl/SoleID)
 
 </div>
