@@ -320,6 +320,14 @@ All API responses follow a consistent JSON structure:
 - **Price Prediction**: ML-powered market forecasting
 - **Automated Categorization**: Intelligent sneaker classification
 
+### 🚀 Phase 3 Development
+- Backend contract consolidation with FastAPI and OpenAPI export
+- Android client model generation from OpenAPI
+- Crash reporting integration behind feature flags
+- CI pipelines for backend (pytest), Android, secret scans and doc checks
+- Android Macrobenchmark module for startup/search/detail flows
+- See detailed plan: [PHASE3_REQUIREMENTS.md](docs/PHASE3_REQUIREMENTS.md)
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Here's how you can help:
