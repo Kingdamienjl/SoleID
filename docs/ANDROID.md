@@ -7,4 +7,4 @@ Screens:
 - CameraScreen: capture and basic scaffolding for quality checks
 - ResultsScreen: placeholder
 
-Networking: To be wired to backend base URL from `local.properties`.
+Networking: Uses `BuildConfig.API_BASE_URL` configured in app build types.
