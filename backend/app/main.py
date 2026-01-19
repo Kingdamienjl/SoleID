@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 import time
 import logging
+from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 from app.routes.match import router as match_router
 from app.routes.prices import router as prices_router
@@ -18,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 logger = logging.getLogger("soleid")
 logging.basicConfig(level=logging.INFO)
 
@@ -29,6 +29,9 @@ async def timing_middleware(request, call_next):
     duration_ms = int((time.time() - start) * 1000)
     logger.info("path=%s status=%s duration_ms=%s", request.url.path, response.status_code, duration_ms)
     return response
+
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", handle_metrics)
 
 @app.get("/health")
 def health() -> dict:
