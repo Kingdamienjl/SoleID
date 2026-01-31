@@ -8,6 +8,7 @@ from starlette_exporter import PrometheusMiddleware, handle_metrics
 from app.routes.match import router as match_router
 from app.routes.prices import router as prices_router
 from app.routes.validate import router as validate_router
+from app.routes.search import router as search_router
 from app.services.vector import get_vector_service
 
 app = FastAPI(title="SoleID Backend", version="0.1.0")
@@ -42,9 +43,11 @@ def health() -> dict:
 app.include_router(match_router, prefix="")
 app.include_router(prices_router, prefix="")
 app.include_router(validate_router, prefix="")
+app.include_router(search_router, prefix="")
 app.include_router(match_router, prefix="/api")
 app.include_router(prices_router, prefix="/api")
 app.include_router(validate_router, prefix="/api")
+app.include_router(search_router, prefix="/api")
 
 @app.get("/api/stats")
 def stats() -> dict:
