@@ -3,9 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 import time
 import logging
+from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 from app.routes.match import router as match_router
 from app.routes.prices import router as prices_router
+from app.routes.validate import router as validate_router
 from app.services.vector import get_vector_service
 
 app = FastAPI(title="SoleID Backend", version="0.1.0")
@@ -18,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 logger = logging.getLogger("soleid")
 logging.basicConfig(level=logging.INFO)
 
@@ -30,6 +31,9 @@ async def timing_middleware(request, call_next):
     logger.info("path=%s status=%s duration_ms=%s", request.url.path, response.status_code, duration_ms)
     return response
 
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", handle_metrics)
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -37,8 +41,10 @@ def health() -> dict:
 
 app.include_router(match_router, prefix="")
 app.include_router(prices_router, prefix="")
+app.include_router(validate_router, prefix="")
 app.include_router(match_router, prefix="/api")
 app.include_router(prices_router, prefix="/api")
+app.include_router(validate_router, prefix="/api")
 
 @app.get("/api/stats")
 def stats() -> dict:
