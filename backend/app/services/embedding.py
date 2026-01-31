@@ -46,6 +46,7 @@ def preprocess_image_for_openclip(image: Image.Image) -> torch.Tensor:
 class EmbeddingService:
     def __init__(self) -> None:
         self.mock = os.getenv("MOCK_EMBEDDING", "false").lower() == "true"
+        self.tokenizer = None
         if not self.mock:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
             model_name = "ViT-B-16"
@@ -53,6 +54,7 @@ class EmbeddingService:
             self.model, _, _ = open_clip.create_model_and_transforms(model_name, pretrained=pretrained)
             self.model.eval()
             self.model.to(self.device)
+            self.tokenizer = open_clip.get_tokenizer(model_name)
 
     async def embed_tensor(self, tensor: torch.Tensor) -> np.ndarray:
         if self.mock:
@@ -74,3 +76,25 @@ class EmbeddingService:
                 return vec[0]
 
         return await asyncio.to_thread(_embed)
+
+    async def encode_text(self, texts: list[str]) -> np.ndarray:
+        """Encode text prompts into embeddings for zero-shot classification."""
+        if self.mock:
+            # Return deterministic pseudo-vectors for testing
+            vecs = []
+            for i, text in enumerate(texts):
+                seed = hash(text) % (2**32 - 1)
+                rng = np.random.default_rng(seed)
+                vec = rng.normal(size=(512,)).astype(np.float32)
+                vec = vec / (np.linalg.norm(vec) + 1e-8)
+                vecs.append(vec)
+            return np.array(vecs)
+
+        def _encode() -> np.ndarray:
+            with torch.no_grad():
+                tokens = self.tokenizer(texts).to(self.device)
+                text_features = self.model.encode_text(tokens)
+                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+                return text_features.detach().cpu().numpy().astype(np.float32)
+
+        return await asyncio.to_thread(_encode)

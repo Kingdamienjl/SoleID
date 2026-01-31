@@ -17,3 +17,5 @@ seed:
 
 reindex:
 	PYTHONPATH=backend python scripts/rebuild_index.py
+openapi:
+	PYTHONPATH=backend python backend/scripts/export_openapi.py

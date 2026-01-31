@@ -22,3 +22,6 @@ redis==5.0.8
 
 # Google APIs
 google-api-python-client==2.149.0
+ 
+# Monitoring
+starlette-exporter==0.15.0
