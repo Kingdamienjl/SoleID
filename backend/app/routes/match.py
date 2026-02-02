@@ -53,10 +53,9 @@ async def match_endpoint(
                 "message": "Image validation failed",
                 "validation": {
                     "is_valid": validation_result.is_valid,
-                    "shoe_confidence": validation_result.shoe_confidence,
+                    "confidence": validation_result.confidence,
                     "errors": validation_result.validation_errors,
                     "suggestions": validation_result.suggestions,
-                    "quality_score": validation_result.quality_score,
                 }
             }
             raise HTTPException(status_code=400, detail=error_detail)

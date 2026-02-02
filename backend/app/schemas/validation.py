@@ -1,16 +1,21 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import Optional
+from pydantic import BaseModel
 
 
 class ValidationResult(BaseModel):
-    """Result of image validation before matching."""
+    """Result of image validation."""
+
     is_valid: bool
-    shoe_confidence: float = Field(ge=0.0, le=1.0, description="CLIP confidence that image contains a shoe")
-    validation_errors: List[str] = Field(default_factory=list)
-    suggestions: List[str] = Field(default_factory=list)
-    quality_score: float = Field(default=1.0, ge=0.0, le=1.0, description="Overall image quality score")
+    confidence: float  # CLIP shoe confidence score (0-1)
+    validation_errors: list[str] = []
+    suggestions: list[str] = []
 
 
 class ValidationResponse(BaseModel):
-    """Response from /validate endpoint."""
+    """Response that includes validation result and optional match candidates."""
+
     validation: ValidationResult
+    # If valid and matching was performed, include candidates
+    candidates: Optional[list] = None
