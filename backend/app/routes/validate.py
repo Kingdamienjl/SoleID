@@ -1,30 +1,29 @@
-"""
-Image validation endpoint for pre-flight checks before matching.
-"""
-
 from fastapi import APIRouter, UploadFile, File, HTTPException
-
-from app.schemas.validation import ValidationResult, ValidationResponse
-from app.services.validation import get_validation_service
 from PIL import Image
 import io
+
+from app.schemas.validation import ValidationResult
+from app.services.validation import get_validation_service
 
 router = APIRouter()
 
 
-@router.post("/validate", response_model=ValidationResponse)
-async def validate_endpoint(image: UploadFile = File(...)) -> ValidationResponse:
+@router.post("/validate", response_model=ValidationResult)
+async def validate_endpoint(
+    image: UploadFile = File(...),
+) -> ValidationResult:
     """
-    Validate an image before matching.
+    Validate an image for sneaker matching without performing the match.
 
-    Returns validation result indicating if the image:
-    - Contains a shoe/sneaker (CLIP classification)
-    - Has acceptable quality (not blurry, proper lighting)
-
-    This is a lightweight pre-flight check that can be called before
-    the full /match endpoint to provide faster feedback to users.
+    Use this endpoint for quick pre-flight checks before sending to /match.
 
     - **image**: Image file to validate (JPEG, PNG)
+
+    Returns validation result with:
+    - is_valid: Whether image passes all checks
+    - confidence: CLIP shoe detection confidence (0-1)
+    - validation_errors: List of issues found
+    - suggestions: Helpful tips to fix issues
     """
     # Parse image
     try:
@@ -35,6 +34,6 @@ async def validate_endpoint(image: UploadFile = File(...)) -> ValidationResponse
 
     # Run validation
     validation_service = get_validation_service()
-    validation_result = await validation_service.validate_image(pil)
+    result = await validation_service.validate_image(pil)
 
-    return ValidationResponse(validation=validation_result)
+    return result
