@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    INSTRUCTIONS:
+    1. Go to Firebase Console: https://console.firebase.google.com/project/sole-id
+    2. Click "Add app" → iOS
+    3. Bundle ID: com.soleid.app
+    4. Download GoogleService-Info.plist
+    5. Replace this template file with the downloaded file
+    6. Remove the .template extension
+-->
+<plist version="1.0">
+<dict>
+    <key>CLIENT_ID</key>
+    <string>YOUR_CLIENT_ID.apps.googleusercontent.com</string>
+    <key>REVERSED_CLIENT_ID</key>
+    <string>com.googleusercontent.apps.YOUR_CLIENT_ID</string>
+    <key>API_KEY</key>
+    <string>YOUR_API_KEY</string>
+    <key>GCM_SENDER_ID</key>
+    <string>512523849627</string>
+    <key>PLIST_VERSION</key>
+    <string>1</string>
+    <key>BUNDLE_ID</key>
+    <string>com.soleid.app</string>
+    <key>PROJECT_ID</key>
+    <string>sole-id</string>
+    <key>STORAGE_BUCKET</key>
+    <string>sole-id.firebasestorage.app</string>
+    <key>IS_ADS_ENABLED</key>
+    <false/>
+    <key>IS_ANALYTICS_ENABLED</key>
+    <true/>
+    <key>IS_APPINVITE_ENABLED</key>
+    <true/>
+    <key>IS_GCM_ENABLED</key>
+    <true/>
+    <key>IS_SIGNIN_ENABLED</key>
+    <true/>
+    <key>GOOGLE_APP_ID</key>
+    <string>1:512523849627:ios:REPLACE_WITH_REAL_ID</string>
+</dict>
+</plist>
