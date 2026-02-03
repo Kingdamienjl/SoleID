@@ -154,6 +154,38 @@ SoleID/
     └── README.md                # Android app documentation
 ```
 
+## 📦 Releases & Installation
+
+### Android
+
+Download the latest APK from [GitHub Releases](https://github.com/Kingdamienjl/soleid-android/releases):
+
+- **Tag format**: `v1.x.x-android`
+- **Direct install**: Download `.apk` file and install on device
+- **Requirements**: Android 5.0+ (API 21)
+
+### iOS
+
+iOS requires building from source due to Apple's code signing:
+
+- **Tag format**: `v1.x.x-ios`
+- **TestFlight**: Coming soon (requires Apple Developer account)
+- **Xcode Install**:
+  1. Open `ios-app/` in Xcode
+  2. Connect iOS device
+  3. Select your device and click Run
+- **Requirements**: iOS 16.0+, Xcode 15+, macOS
+
+### Release Tags
+
+| Platform | Latest         | Tag Pattern       |
+| -------- | -------------- | ----------------- |
+| Android  | v1.0.0-android | `v*.*.*-android`  |
+| iOS      | v1.0.0-ios     | `v*.*.*-ios`      |
+| Backend  | (main branch)  | -                 |
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites

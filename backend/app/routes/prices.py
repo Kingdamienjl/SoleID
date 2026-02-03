@@ -1,14 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from app.schemas.price import PriceSnapshot
-from app.services.pricing.ebay import EbayPriceProvider
-from app.services.cache import get_cache
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone
+
+from app.dependencies.auth import get_current_user
+from app.schemas.price import PriceSnapshot
+from app.services.auth import FirebaseUser
+from app.services.cache import get_cache
+from app.services.pricing.ebay import EbayPriceProvider
 
 router = APIRouter()
 
 
 @router.get("/prices", response_model=PriceSnapshot)
-async def prices_endpoint(sku: str) -> PriceSnapshot:
+async def prices_endpoint(
+    sku: str,
+    user: FirebaseUser = Depends(get_current_user),
+) -> PriceSnapshot:
     if not sku:
         raise HTTPException(status_code=400, detail="sku is required")
 

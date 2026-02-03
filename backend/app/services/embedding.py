@@ -22,16 +22,17 @@ def get_embedding_service() -> "EmbeddingService":
 
 
 def preprocess_image_for_openclip(image: Image.Image) -> torch.Tensor:
-    # Resize longest side to 336, center-crop square, normalize per OpenCLIP mean/std
+    # Resize longest side to 224, center-crop square, normalize per OpenCLIP mean/std
+    # ViT-B-16 with openai weights expects 224x224 input
     image = image.copy()
     width, height = image.size
-    scale = 336 / max(width, height)
+    scale = 224 / max(width, height)
     new_size = (int(round(width * scale)), int(round(height * scale)))
     image = image.resize(new_size, Image.BICUBIC)
-    # Center crop to 336x336
-    left = max(0, (image.width - 336) // 2)
-    top = max(0, (image.height - 336) // 2)
-    image = image.crop((left, top, left + 336, top + 336))
+    # Center crop to 224x224
+    left = max(0, (image.width - 224) // 2)
+    top = max(0, (image.height - 224) // 2)
+    image = image.crop((left, top, left + 224, top + 224))
 
     preprocess = transforms.Compose(
         [

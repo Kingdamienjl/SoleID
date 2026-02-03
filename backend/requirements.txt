@@ -1,27 +1,30 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.9.2
-orjson==3.10.7
-python-dotenv==1.0.1
-httpx==0.27.2
-tenacity==9.0.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+pydantic>=2.9.2
+orjson>=3.10.7
+python-dotenv>=1.0.1
+httpx>=0.27.2
+tenacity>=9.0.0
 
 # Data & ML
-numpy==2.1.1
-pillow==10.4.0
-torch==2.4.1
-torchvision==0.19.1
-open_clip_torch==2.26.1
-imagehash==4.3.1
+numpy>=2.1.1
+pillow>=10.4.0
+torch>=2.6.0
+torchvision>=0.21.0
+open_clip_torch>=2.26.1
+imagehash>=4.3.1
 
 # Vector DB
-qdrant-client==1.9.2
+qdrant-client>=1.9.2
 
 # Optional cache
-redis==5.0.8
+redis>=5.0.8
 
 # Google APIs
-google-api-python-client==2.149.0
- 
+google-api-python-client>=2.149.0
+
 # Monitoring
-starlette-exporter==0.15.0
+starlette-exporter>=0.15.0
+
+# Authentication
+firebase-admin>=6.4.0
