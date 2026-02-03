@@ -210,16 +210,18 @@ async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
         brand = parts[0].title() if parts else "Unknown"
         model = " ".join(parts[1:]).title() if len(parts) > 1 else filename
 
-        # Create payload
+        # Create payload matching Shoe schema
         payload = {
             "id": str(i),
             "brand": brand,
             "model": model,
-            "colorway": None,
+            "colorway": "",  # Required field, empty if unknown
             "sku": filename,
             "year": None,
+            "aliases": [],
             "images": [str(img_path)],
-            "sources": {"local": str(img_path)}
+            "sources": [{"name": "local", "url": str(img_path)}],  # List of SourceRef
+            "lastPriceSnapshotAt": None,
         }
 
         # Generate embedding
