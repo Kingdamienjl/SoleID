@@ -38,6 +38,23 @@ async def timing_middleware(request, call_next):
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics", handle_metrics)
 
+@app.get("/")
+def root() -> dict:
+    """API root - provides basic info and links."""
+    return {
+        "name": "SoleID API",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "search": "/search?q=<query>",
+            "brands": "/brands",
+            "trending": "/sneakers/trending",
+            "match": "/match (POST, requires auth)",
+        }
+    }
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
