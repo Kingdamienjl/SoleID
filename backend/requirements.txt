@@ -25,3 +25,6 @@ google-api-python-client>=2.149.0
 
 # Monitoring
 starlette-exporter>=0.15.0
+
+# Authentication
+firebase-admin>=6.4.0

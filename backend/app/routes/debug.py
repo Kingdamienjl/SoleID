@@ -1,12 +1,15 @@
 """
 Debug/logging endpoints for receiving remote device logs.
 """
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import json
 import os
+
+from app.dependencies.auth import get_current_user, require_admin
+from app.services.auth import FirebaseUser
 
 router = APIRouter()
 
@@ -60,7 +63,10 @@ class DeviceListResponse(BaseModel):
 
 
 @router.post("/debug/logs", response_model=LogUploadResponse)
-async def upload_device_logs(request: LogUploadRequest) -> LogUploadResponse:
+async def upload_device_logs(
+    request: LogUploadRequest,
+    user: FirebaseUser = Depends(get_current_user),
+) -> LogUploadResponse:
     """
     Receive debug logs from a remote device.
     Logs are stored in device_logs/{device_id}/{date}.ndjson
@@ -111,7 +117,9 @@ async def upload_device_logs(request: LogUploadRequest) -> LogUploadResponse:
 
 
 @router.get("/debug/devices", response_model=DeviceListResponse)
-async def list_devices() -> DeviceListResponse:
+async def list_devices(
+    user: FirebaseUser = Depends(require_admin),
+) -> DeviceListResponse:
     """
     List all devices that have uploaded logs.
     """
@@ -162,6 +170,7 @@ async def get_device_logs(
     limit: int = 100,
     level: Optional[str] = None,
     tag: Optional[str] = None,
+    user: FirebaseUser = Depends(require_admin),
 ) -> Dict[str, Any]:
     """
     Get logs for a specific device.
@@ -220,7 +229,10 @@ async def get_device_logs(
 
 
 @router.delete("/debug/logs/{device_id}")
-async def delete_device_logs(device_id: str) -> Dict[str, str]:
+async def delete_device_logs(
+    device_id: str,
+    user: FirebaseUser = Depends(require_admin),
+) -> Dict[str, str]:
     """
     Delete all logs for a device.
     """
