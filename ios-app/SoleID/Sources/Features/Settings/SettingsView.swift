@@ -2,12 +2,61 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
     @State private var apiURL: String = ""
     @State private var showDeviceInfo = false
+    @State private var showSignOutAlert = false
 
     var body: some View {
         NavigationStack {
             List {
+                // Account Section
+                Section("Account") {
+                    if let user = authService.currentUser {
+                        HStack {
+                            // User avatar
+                            if let photoURL = user.photoURL {
+                                AsyncImage(url: photoURL) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                } placeholder: {
+                                    Image(systemName: "person.circle.fill")
+                                        .resizable()
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .foregroundColor(Color(hex: "FF6B35"))
+                                    .frame(width: 50, height: 50)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(user.displayName ?? "User")
+                                    .font(.headline)
+                                if let email = user.email {
+                                    Text(email)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+
+                        Button(role: .destructive) {
+                            showSignOutAlert = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                Text("Sign Out")
+                            }
+                        }
+                    }
+                }
+
                 // Server Settings
                 Section {
                     HStack {
@@ -96,6 +145,18 @@ struct SettingsView: View {
             .sheet(isPresented: $showDeviceInfo) {
                 DeviceInfoSheet()
             }
+            .alert("Sign Out", isPresented: $showSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    do {
+                        try authService.signOut()
+                    } catch {
+                        RemoteLogger.shared.log(tag: "Settings", level: .error, message: "Sign out failed: \(error)")
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to sign out?")
+            }
         }
     }
 
@@ -146,4 +207,5 @@ struct DeviceInfoSheet: View {
 #Preview {
     SettingsView()
         .environmentObject(AppState())
+        .environmentObject(AuthService.shared)
 }

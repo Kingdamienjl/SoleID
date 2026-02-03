@@ -2,10 +2,12 @@ import SwiftUI
 import FirebaseCore
 import FirebaseCrashlytics
 import FirebasePerformance
+import GoogleSignIn
 
 @main
 struct SoleIDApp: App {
     @StateObject private var appState = AppState()
+    @StateObject private var authService = AuthService.shared
 
     init() {
         // Configure Firebase
@@ -33,8 +35,9 @@ struct SoleIDApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(appState)
+                .environmentObject(authService)
                 .preferredColorScheme(.dark)
                 .onAppear {
                     // Upload any pending logs on app launch
@@ -42,7 +45,45 @@ struct SoleIDApp: App {
                         await RemoteLogger.shared.uploadPendingLogs()
                     }
                 }
+                .onOpenURL { url in
+                    // Handle Google Sign-In callback URL
+                    GIDSignIn.sharedInstance.handle(url)
+                }
         }
+    }
+}
+
+// MARK: - Root View (handles auth state)
+
+struct RootView: View {
+    @EnvironmentObject var authService: AuthService
+
+    var body: some View {
+        Group {
+            switch authService.authState {
+            case .unknown:
+                // Loading state
+                ZStack {
+                    Color(hex: "0D0D0D").ignoresSafeArea()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "FF6B35")))
+                        .scaleEffect(1.5)
+                }
+            case .unauthenticated:
+                LoginView()
+            case .authenticated:
+                ContentView()
+            }
+        }
+        .animation(.easeInOut, value: authService.authState.isAuthenticated)
+    }
+}
+
+// Helper for animation
+extension AuthState {
+    var isAuthenticated: Bool {
+        if case .authenticated = self { return true }
+        return false
     }
 }
 
