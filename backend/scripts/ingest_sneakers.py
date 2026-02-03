@@ -26,6 +26,7 @@ SCRAPER_DATA = Path(__file__).parent.parent.parent / "sneaker-scraper" / "data"
 
 # Image directories to search
 IMAGE_DIRS = [
+    "scraped_images",  # Newly scraped images
     "real_sneaker_images",
     "enhanced_sneaker_images",
     "enhanced_images",
@@ -127,9 +128,10 @@ def get_all_local_images() -> List[Path]:
     for img_dir in IMAGE_DIRS:
         dir_path = SCRAPER_DATA / img_dir
         if dir_path.exists():
-            images.extend(dir_path.glob("*.jpg"))
-            images.extend(dir_path.glob("*.png"))
-            images.extend(dir_path.glob("*.jpeg"))
+            # Search recursively for images in subdirectories
+            images.extend(dir_path.rglob("*.jpg"))
+            images.extend(dir_path.rglob("*.png"))
+            images.extend(dir_path.rglob("*.jpeg"))
     return images
 
 
@@ -202,25 +204,40 @@ async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
     images_to_process = local_images[:limit] if limit else local_images
 
     for i, img_path in enumerate(images_to_process):
-        # Extract metadata from filename
+        # Extract metadata from folder name or filename
+        # Folder format: Brand_Model_Colorway (e.g., Jordan_Jordan_Classic_BlackBlue)
+        folder_name = img_path.parent.name
         filename = img_path.stem
-        parts = filename.split("_")
 
-        # Try to parse brand from filename
-        brand = parts[0].title() if parts else "Unknown"
-        model = " ".join(parts[1:]).title() if len(parts) > 1 else filename
+        # Try folder name first (more reliable for scraped images)
+        if "_" in folder_name and folder_name != "scraped_images":
+            parts = folder_name.split("_")
+            brand = parts[0].replace("_", " ").title() if parts else "Unknown"
+            # Find colorway (usually last part with color words)
+            colorway_idx = len(parts)
+            for j, p in enumerate(parts[1:], 1):
+                if any(c in p.lower() for c in ["white", "black", "red", "blue", "green", "grey", "brown", "navy"]):
+                    colorway_idx = j
+                    break
+            model = " ".join(parts[1:colorway_idx]).replace("_", " ").title()
+            colorway = " ".join(parts[colorway_idx:]).replace("_", " ").title() if colorway_idx < len(parts) else ""
+        else:
+            parts = filename.split("_")
+            brand = parts[0].title() if parts else "Unknown"
+            model = " ".join(parts[1:]).title() if len(parts) > 1 else filename
+            colorway = ""
 
         # Create payload matching Shoe schema
         payload = {
             "id": str(i),
             "brand": brand,
             "model": model,
-            "colorway": "",  # Required field, empty if unknown
-            "sku": filename,
+            "colorway": colorway,
+            "sku": folder_name if folder_name != "scraped_images" else filename,
             "year": None,
             "aliases": [],
             "images": [str(img_path)],
-            "sources": [{"name": "local", "url": str(img_path)}],  # List of SourceRef
+            "sources": [{"name": "local", "url": str(img_path)}],
             "lastPriceSnapshotAt": None,
         }
 
