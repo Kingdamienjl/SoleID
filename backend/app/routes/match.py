@@ -1,7 +1,9 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from typing import List, Optional
 
+from app.dependencies.auth import get_current_user
 from app.schemas.match import MatchResponse, Candidate
+from app.services.auth import FirebaseUser
 from app.schemas.validation import ValidationResult
 from app.services.embedding import get_embedding_service
 from app.services.vector import get_vector_service
@@ -26,6 +28,7 @@ async def match_endpoint(
     top_k: int = Query(default=5, ge=1, le=20, description="Number of candidates to return"),
     min_score: float = Query(default=0.0, ge=0.0, le=1.0, description="Minimum similarity score threshold"),
     skip_validation: bool = Query(default=False, description="Skip shoe detection validation"),
+    user: FirebaseUser = Depends(get_current_user),
 ) -> MatchResponse:
     """
     Match an uploaded image against the sneaker database.

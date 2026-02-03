@@ -1,8 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from PIL import Image
 import io
 
+from app.dependencies.auth import get_current_user
 from app.schemas.validation import ValidationResult
+from app.services.auth import FirebaseUser
 from app.services.validation import get_validation_service
 
 router = APIRouter()
@@ -11,6 +13,7 @@ router = APIRouter()
 @router.post("/validate", response_model=ValidationResult)
 async def validate_endpoint(
     image: UploadFile = File(...),
+    user: FirebaseUser = Depends(get_current_user),
 ) -> ValidationResult:
     """
     Validate an image for sneaker matching without performing the match.
