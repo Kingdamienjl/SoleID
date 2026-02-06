@@ -1,0 +1,9 @@
+[submodule "android-app"]
+	path = android-app
+	url = https://github.com/Kingdamienjl/soleid-android.git
+	branch = main
+
+[submodule "sneaker-scraper"]
+	path = sneaker-scraper
+	url = https://github.com/Kingdamienjl/Sneaker-Scraper.git
+	branch = main
