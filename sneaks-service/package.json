@@ -1,0 +1,15 @@
+{
+  "name": "soleid-sneaks-service",
+  "version": "1.0.0",
+  "description": "Sneaker pricing microservice wrapping Sneaks-API-2.0 for SoleID",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "sneaks-api": "1.2.3",
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
+  }
+}

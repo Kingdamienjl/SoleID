@@ -1,128 +1,54 @@
 """
-GOAT API integration for sneaker pricing.
+GOAT pricing via Sneaks-API bridge.
 
-GOAT is one of the largest sneaker marketplaces, providing:
-- New and used sneaker prices
-- Instant ship options
-- Authentication services
+Uses the sneaks-service Node.js microservice to get real-time
+GOAT pricing data.
 
-API Access:
-- GOAT has a mobile app API that can be accessed
-- Official API access requires partnership
-- This implementation supports mock mode for development
-
-Environment Variables:
-- GOAT_API_KEY: API key if available
-- GOAT_ENABLED: Set to "true" to enable (default: false)
+Falls back to mock data when the sneaks-service is unavailable.
 """
 from __future__ import annotations
 
-import os
 import logging
 from datetime import datetime, timezone
 from statistics import mean
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 
-import httpx
 from app.schemas.price import PriceSnapshot, SourceBreakdown
 from app.services.pricing.base import PriceProvider
+from app.services.pricing.sneaks_bridge import SneaksBridge, get_sneaks_bridge
 
 logger = logging.getLogger("soleid.pricing.goat")
 
 
 class GoatPriceProvider(PriceProvider):
-    """GOAT pricing provider."""
+    """GOAT pricing provider backed by Sneaks-API bridge."""
 
-    # GOAT mobile API endpoints (unofficial)
-    BASE_URL = "https://www.goat.com/api/v1"
-    SEARCH_URL = "https://www.goat.com/api/v1/product_templates"
-    ALGOLIA_URL = "https://2fwotdvm2o-dsn.algolia.net/1/indexes/product_variants_v2"
-
-    def __init__(self) -> None:
-        self.api_key = os.getenv("GOAT_API_KEY", "")
-        self.enabled = os.getenv("GOAT_ENABLED", "false").lower() == "true"
-        self.client = httpx.AsyncClient(
-            timeout=30,
-            headers={
-                "User-Agent": "GOAT/2.62.0 (iPhone; iOS 17.0; Scale/3.00)",
-                "Accept": "application/json",
-                "Accept-Language": "en-US,en;q=0.9",
-            }
-        )
-        logger.info("GOAT provider initialized (enabled=%s)", self.enabled)
+    def __init__(self, bridge: Optional[SneaksBridge] = None) -> None:
+        self.bridge = bridge or get_sneaks_bridge()
+        self.enabled = True  # Always enabled; degrades to mock if bridge down
+        logger.info("GOAT provider initialized (sneaks-bridge backed)")
 
     def is_configured(self) -> bool:
-        """Check if GOAT API is configured."""
-        return self.enabled
+        """Check if provider has real data access."""
+        return self.bridge.is_available is not False
 
-    async def search_product(self, query: str) -> Optional[Dict[str, Any]]:
-        """
-        Search for a product by SKU or name.
-
-        Args:
-            query: SKU or product name to search.
-
-        Returns:
-            Product data dict or None if not found.
-        """
-        if not self.enabled:
+    async def _search_product(self, sku: str) -> Optional[Dict[str, Any]]:
+        """Search for a product by SKU via sneaks-bridge."""
+        products = await self.bridge.search(sku, limit=3)
+        if not products:
             return None
 
-        try:
-            params = {
-                "query": query,
-                "productCategory": "shoes",
-            }
+        for p in products:
+            if p.get("styleID", "").upper() == sku.upper():
+                return p
+        return products[0]
 
-            response = await self.client.get(
-                self.SEARCH_URL,
-                params=params,
-            )
-
-            if response.status_code == 200:
-                data = response.json()
-                templates = data.get("productTemplates", [])
-                if templates:
-                    return templates[0]
-            else:
-                logger.warning("GOAT search failed: %s", response.status_code)
-
-        except Exception as e:
-            logger.error("GOAT search error: %s", e)
-
-        return None
-
-    async def get_product_details(self, slug: str) -> Optional[Dict[str, Any]]:
-        """
-        Get detailed product information including pricing.
-
-        Args:
-            slug: Product slug/URL identifier.
-
-        Returns:
-            Product details dict or None.
-        """
-        if not self.enabled:
-            return None
-
-        try:
-            response = await self.client.get(
-                f"{self.BASE_URL}/product_templates/{slug}",
-            )
-
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.warning("GOAT product details failed: %s", response.status_code)
-
-        except Exception as e:
-            logger.error("GOAT product error: %s", e)
-
-        return None
+    async def _get_detailed_prices(self, style_id: str) -> Optional[Dict[str, Any]]:
+        """Get detailed per-size pricing via sneaks-bridge."""
+        return await self.bridge.get_prices(style_id)
 
     def _generate_mock_data(self, sku: str) -> Dict[str, Any]:
         """Generate realistic mock data for development."""
-        # GOAT typically has slightly different prices than StockX
         base_price = 175 + (hash(sku) % 160)
         variance = (hash(sku[::-1]) % 25) + 8
 
@@ -139,104 +65,121 @@ class GoatPriceProvider(PriceProvider):
         """
         Get price snapshot for a SKU from GOAT.
 
-        Args:
-            sku: Product SKU to look up.
-
-        Returns:
-            PriceSnapshot with GOAT market data.
+        Flow:
+        1. Search sneaks-service for the product by SKU
+        2. Try to get detailed per-size GOAT pricing
+        3. Fall back to search-result pricing (lowestResellPrice.goat)
+        4. Fall back to mock data if service is down
         """
-        product_data = None
+        product = await self._search_product(sku)
 
-        if self.enabled:
-            # Try to find product by SKU
-            product = await self.search_product(sku)
-            if product:
-                slug = product.get("slug")
-                if slug:
-                    product_data = await self.get_product_details(slug)
+        if product:
+            # Extract GOAT pricing from search result
+            lowest_resell = product.get("lowestResellPrice")
+            goat_price = None
+            if isinstance(lowest_resell, dict):
+                goat_price = lowest_resell.get("goat")
 
-        # Fall back to mock data if no real data
-        if not product_data:
-            if not self.enabled:
-                logger.debug("GOAT disabled, returning mock data for %s", sku)
-            product_data = self._generate_mock_data(sku)
+            retail = product.get("retailPrice")
 
-        # Extract pricing info
-        # GOAT uses different field names
-        lowest_new = product_data.get("lowestPriceNew") or product_data.get("lowestPriceCents", 0) / 100
-        lowest_used = product_data.get("lowestPriceUsed")
-        instant_ship = product_data.get("instantShipPrice") or product_data.get("instantShipLowestPriceCents", 0) / 100
-        last_sale = product_data.get("lastSale") or product_data.get("lastSoldPriceCents", 0) / 100
-        retail = product_data.get("retailPrice") or product_data.get("retailPriceCents", 0) / 100
+            # Try to get detailed GOAT pricing
+            style_id = product.get("styleID", sku)
+            detailed = await self._get_detailed_prices(style_id)
 
-        # Use lowest new price as the primary "ask"
-        lowest_ask = lowest_new if lowest_new else instant_ship
+            goat_prices = {}
+            images = []
+            if detailed:
+                goat_prices = detailed.get("goatPrices", {})
+                img_data = detailed.get("images", {})
+                images = img_data.get("additional", [])
 
-        # Calculate average from available prices
-        prices = [p for p in [lowest_new, lowest_used, last_sale] if p and p > 0]
+            # If we have per-size prices, compute stats from them
+            if goat_prices:
+                prices_list = [v for v in goat_prices.values() if v and v > 0]
+                lowest = min(prices_list) if prices_list else goat_price
+                highest = max(prices_list) if prices_list else goat_price
+                avg = mean(prices_list) if prices_list else goat_price
+                count = len(prices_list)
+            else:
+                lowest = goat_price
+                highest = goat_price
+                avg = goat_price
+                count = 1 if goat_price else 0
+
+            return PriceSnapshot(
+                sku=sku,
+                asOf=datetime.now(timezone.utc).isoformat(),
+                retail=retail,
+                lowestAsk=lowest,
+                highestBid=None,  # GOAT doesn't have a bid system
+                lastSale=goat_price,
+                averagePrice=avg,
+                sourceBreakdown=[
+                    SourceBreakdown(
+                        source="goat",
+                        median=goat_price,
+                        count=count,
+                        lowest=lowest,
+                        highest=highest,
+                    )
+                ],
+            )
+
+        # Fallback to mock data
+        logger.debug("GOAT using mock data for %s (sneaks-service unavailable)", sku)
+        mock = self._generate_mock_data(sku)
+
+        lowest_new = mock["lowestPriceNew"]
+        last_sale = mock["lastSale"]
+        retail = mock["retailPrice"]
+
+        prices = [p for p in [lowest_new, last_sale] if p and p > 0]
         avg_price = mean(prices) if prices else None
 
         return PriceSnapshot(
             sku=sku,
             asOf=datetime.now(timezone.utc).isoformat(),
-            retail=retail if retail and retail > 0 else None,
-            lowestAsk=lowest_ask if lowest_ask and lowest_ask > 0 else None,
-            highestBid=None,  # GOAT doesn't have bid system like StockX
-            lastSale=last_sale if last_sale and last_sale > 0 else None,
+            retail=retail,
+            lowestAsk=lowest_new,
+            highestBid=None,
+            lastSale=last_sale,
             averagePrice=avg_price,
             sourceBreakdown=[
                 SourceBreakdown(
                     source="goat",
-                    median=last_sale if last_sale and last_sale > 0 else None,
-                    count=product_data.get("numberOfListings"),
-                    lowest=lowest_used if lowest_used and lowest_used > 0 else lowest_ask,
-                    highest=instant_ship if instant_ship and instant_ship > 0 else lowest_ask,
+                    median=last_sale,
+                    count=mock.get("numberOfListings"),
+                    lowest=mock.get("lowestPriceUsed"),
+                    highest=mock.get("instantShipPrice"),
                 )
             ],
         )
 
     async def get_size_prices(self, sku: str) -> Dict[str, Dict[str, float]]:
-        """
-        Get prices broken down by size.
+        """Get prices broken down by size."""
+        product = await self._search_product(sku)
+        if product:
+            style_id = product.get("styleID", sku)
+            detailed = await self._get_detailed_prices(style_id)
+            if detailed:
+                goat = detailed.get("goatPrices", {})
+                if goat:
+                    return {
+                        size: {"new": price}
+                        for size, price in goat.items()
+                        if price and price > 0
+                    }
 
-        Args:
-            sku: Product SKU.
-
-        Returns:
-            Dict mapping size to price info.
-        """
-        if not self.enabled:
-            # Return mock size data
-            base = 175 + (hash(sku) % 100)
-            return {
-                "8": {"new": base - 5, "used": base - 35},
-                "9": {"new": base + 5, "used": base - 25},
-                "10": {"new": base + 20, "used": base - 10},
-                "11": {"new": base + 15, "used": base - 15},
-                "12": {"new": base + 10, "used": base - 20},
-            }
-
-        # TODO: Implement real size price fetching when API access available
-        return {}
-
-    async def get_condition_prices(self, sku: str) -> Dict[str, Optional[float]]:
-        """
-        Get prices by condition (new, used, instant ship).
-
-        Args:
-            sku: Product SKU.
-
-        Returns:
-            Dict with prices by condition.
-        """
-        snapshot = await self.get_price_snapshot(sku)
-
+        # Mock fallback
+        base = 175 + (hash(sku) % 100)
         return {
-            "new": snapshot.lowestAsk,
-            "used": None,  # Would need full product data
-            "instantShip": None,
+            "8": {"new": base - 5},
+            "9": {"new": base + 5},
+            "10": {"new": base + 20},
+            "11": {"new": base + 15},
+            "12": {"new": base + 10},
         }
 
     async def close(self) -> None:
-        """Close the HTTP client."""
-        await self.client.aclose()
+        """Close the bridge client."""
+        pass

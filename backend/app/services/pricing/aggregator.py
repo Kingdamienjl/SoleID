@@ -19,6 +19,7 @@ from statistics import mean, median
 from typing import List, Optional, Dict, Any
 
 from app.schemas.price import PriceSnapshot, SourceBreakdown
+from app.services.pricing.sneaks_bridge import SneaksBridge, get_sneaks_bridge
 from app.services.pricing.stockx import StockXPriceProvider
 from app.services.pricing.goat import GoatPriceProvider
 from app.services.pricing.ebay import EbayPriceProvider
@@ -31,16 +32,18 @@ class PriceAggregator:
     Aggregates pricing data from multiple marketplaces.
 
     Provides a unified view of sneaker prices across:
-    - StockX (real-time market data)
-    - GOAT (new and used prices)
+    - StockX (real-time via Sneaks-API bridge)
+    - GOAT (real-time via Sneaks-API bridge)
     - eBay (sold listings data)
     """
 
     def __init__(self) -> None:
-        self.stockx = StockXPriceProvider()
-        self.goat = GoatPriceProvider()
+        bridge = get_sneaks_bridge()
+        self.stockx = StockXPriceProvider(bridge=bridge)
+        self.goat = GoatPriceProvider(bridge=bridge)
         self.ebay = EbayPriceProvider()
-        logger.info("Price aggregator initialized")
+        self.bridge = bridge
+        logger.info("Price aggregator initialized (sneaks-bridge backed)")
 
     async def get_aggregated_prices(
         self,
