@@ -91,6 +91,15 @@ temp/
 tmp/
 *.tmp
 *.temp
+nul
+
+# Screenshots and debug artifacts
+screenshots/
+backend/device_logs/
+
+# AI/IDE tool docs
+.trae/
+.claude/
 
 # Logs and databases
 logs/
