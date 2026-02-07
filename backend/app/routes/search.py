@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from app.schemas.shoe import Shoe
 from app.services.vector import get_vector_service
+from app.services.pricing.sneaks_bridge import get_sneaks_bridge
 
 router = APIRouter()
 
@@ -127,15 +128,34 @@ async def search_sneakers(
         # Sort by score descending
         search_results.sort(key=lambda x: x.score, reverse=True)
 
+        # If local results are sparse, supplement with live Sneaks-API data
+        if len(search_results) < 3:
+            live_results = await _live_search(q, brand, limit - len(search_results))
+            existing_skus = {r.shoe.sku.upper() for r in search_results}
+            for lr in live_results:
+                if lr.shoe.sku.upper() not in existing_skus:
+                    search_results.append(lr)
+                    existing_skus.add(lr.shoe.sku.upper())
+            search_results.sort(key=lambda x: x.score, reverse=True)
+
         return SearchResponse(
-            results=search_results,
-            total=len(results),
+            results=search_results[:limit],
+            total=len(search_results),
             query=q,
             filters={"brand": brand} if brand else {},
         )
 
     except Exception as e:
-        # If Qdrant filter search fails, fall back to fetching all and filtering in memory
+        # If Qdrant search fails entirely, try live search as primary
+        live_results = await _live_search(q, brand, limit)
+        if live_results:
+            return SearchResponse(
+                results=live_results,
+                total=len(live_results),
+                query=q,
+                filters={"brand": brand} if brand else {},
+            )
+        # Fall back to in-memory search
         return await _fallback_search(q, brand, limit, offset)
 
 
@@ -212,6 +232,44 @@ async def _fallback_search(
         raise HTTPException(status_code=503, detail=f"Search unavailable: {e}")
 
 
+async def _live_search(
+    q: str,
+    brand: Optional[str],
+    limit: int,
+) -> List[SearchResult]:
+    """Search via Sneaks-API bridge for live StockX/GOAT results."""
+    try:
+        bridge = get_sneaks_bridge()
+        products = await bridge.search(q, limit=limit)
+        if not products:
+            return []
+
+        results = []
+        for p in products:
+            # Apply brand filter if specified
+            if brand and p.get("brand", "").lower() != brand.lower():
+                continue
+
+            shoe = Shoe(
+                id=p.get("styleID", ""),
+                sku=p.get("styleID", ""),
+                brand=p.get("brand", "Unknown"),
+                model=p.get("name", ""),
+                colorway=p.get("colorway", ""),
+                year=int(p["releaseDate"][:4]) if p.get("releaseDate") else None,
+                images=[p["thumbnail"]] if p.get("thumbnail") else [],
+                sources=[],
+                aliases=[],
+            )
+            results.append(SearchResult(shoe=shoe, score=0.5))
+
+        return results
+    except Exception as e:
+        import logging
+        logging.getLogger("soleid.search").warning("Live search failed: %s", e)
+        return []
+
+
 @router.get("/brands", response_model=BrandsResponse)
 async def get_brands() -> BrandsResponse:
     """
@@ -252,12 +310,34 @@ async def get_trending_sneakers(
     """
     Get trending/popular sneakers.
 
-    Returns the most recently added or popular sneakers.
+    Uses live Sneaks-API data (StockX trending) with local DB fallback.
     """
-    vector_service = get_vector_service()
-
+    # Try live trending from Sneaks-API first
     try:
-        # Fetch recent shoes (in a real system, this would be based on view counts, etc.)
+        bridge = get_sneaks_bridge()
+        products = await bridge.get_trending(limit=limit)
+        if products:
+            shoes = []
+            for p in products:
+                shoe = Shoe(
+                    id=p.get("styleID", ""),
+                    sku=p.get("styleID", ""),
+                    brand=p.get("brand", "Unknown"),
+                    model=p.get("name", ""),
+                    colorway=p.get("colorway", ""),
+                    year=int(p["releaseDate"][:4]) if p.get("releaseDate") else None,
+                    images=[p["thumbnail"]] if p.get("thumbnail") else [],
+                    sources=[],
+                    aliases=[],
+                )
+                shoes.append(shoe)
+            return TrendingResponse(shoes=shoes, total=len(shoes))
+    except Exception:
+        pass
+
+    # Fallback to local Qdrant data
+    vector_service = get_vector_service()
+    try:
         results, _ = vector_service.client.scroll(
             collection_name=vector_service.collection,
             limit=limit,
@@ -270,10 +350,7 @@ async def get_trending_sneakers(
             payload = point.payload or {}
             shoes.append(Shoe(**payload))
 
-        return TrendingResponse(
-            shoes=shoes,
-            total=len(shoes),
-        )
+        return TrendingResponse(shoes=shoes, total=len(shoes))
 
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch trending: {e}")

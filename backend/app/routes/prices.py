@@ -127,6 +127,41 @@ async def get_best_price(
     return best
 
 
+@router.get("/prices/sizes")
+async def get_size_prices(
+    sku: str = Query(..., description="Product SKU to look up"),
+    user: FirebaseUser = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get size-specific pricing from StockX and GOAT.
+
+    Returns prices broken down by shoe size for each marketplace.
+
+    **Requires authentication.**
+    """
+    if not sku:
+        raise HTTPException(status_code=400, detail="sku is required")
+
+    cache = get_cache()
+    cache_key = f"prices:sizes:{sku}"
+    cached = await cache.get(cache_key)
+    if cached:
+        return cached
+
+    aggregator = get_price_aggregator()
+    stockx_sizes = await aggregator.stockx.get_size_prices(sku)
+    goat_sizes = await aggregator.goat.get_size_prices(sku)
+
+    result = {
+        "sku": sku,
+        "stockx": stockx_sizes,
+        "goat": goat_sizes,
+    }
+
+    await cache.set(cache_key, result, ttl_seconds=300)
+    return result
+
+
 @router.get("/prices/sources")
 async def list_price_sources() -> Dict[str, Any]:
     """
@@ -136,29 +171,37 @@ async def list_price_sources() -> Dict[str, Any]:
     """
     aggregator = get_price_aggregator()
 
+    bridge_status = await aggregator.bridge.health_check()
+
     return {
         "sources": [
             {
                 "name": "stockx",
                 "displayName": "StockX",
-                "description": "Real-time market data with lowest ask, highest bid, and sales history",
+                "description": "Real-time market data via Sneaks-API (StockX Algolia)",
                 "enabled": aggregator.stockx.enabled,
                 "configured": aggregator.stockx.is_configured(),
+                "backend": "sneaks-api" if bridge_status else "mock",
             },
             {
                 "name": "goat",
                 "displayName": "GOAT",
-                "description": "New and used sneaker prices with instant ship options",
+                "description": "New sneaker prices via Sneaks-API (GOAT)",
                 "enabled": aggregator.goat.enabled,
                 "configured": aggregator.goat.is_configured(),
+                "backend": "sneaks-api" if bridge_status else "mock",
             },
             {
                 "name": "ebay",
                 "displayName": "eBay",
                 "description": "Sold listing history and market trends",
-                "enabled": True,  # eBay mock always available
+                "enabled": True,
                 "configured": aggregator.ebay.is_configured(),
+                "backend": "ebay-api" if aggregator.ebay.is_configured() else "mock",
             },
         ],
-        "note": "Sources with configured=false will return mock data for development",
+        "sneaksService": {
+            "url": aggregator.bridge.base_url,
+            "available": bridge_status,
+        },
     }
