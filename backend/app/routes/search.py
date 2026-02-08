@@ -96,9 +96,9 @@ def _shoe_to_sneaker(shoe: Shoe) -> SneakerOut:
         model=model,
         colorway=shoe.colorway,
         sku=shoe.sku,
-        release_date=str(shoe.year) if shoe.year else "",
-        retail_price=None,
-        description="",
+        release_date=shoe.release_date if shoe.release_date else (str(shoe.year) if shoe.year else ""),
+        retail_price=shoe.retail_price,
+        description=shoe.description,
         image_url=shoe.images[0] if shoe.images else "",
         images=shoe.images,
     )
@@ -147,6 +147,41 @@ def _calculate_relevance(query: str, shoe: Shoe) -> float:
     return score
 
 
+def _sneaks_product_to_shoe(p: dict) -> Shoe:
+    """Convert a sneaks-service product dict to an internal Shoe object."""
+    # Collect images from multiple sources
+    images = []
+    if p.get("thumbnail"):
+        images.append(p["thumbnail"])
+    if isinstance(p.get("images"), dict):
+        main_img = p["images"].get("main")
+        if main_img and main_img not in images:
+            images.append(main_img)
+        for extra in p["images"].get("additional", []):
+            if extra and extra not in images:
+                images.append(extra)
+
+    # Build resell price summary
+    resell = p.get("lowestResellPrice") or {}
+    resell_prices = {k: v for k, v in resell.items() if v is not None} or None
+
+    return Shoe(
+        id=p.get("styleID", ""),
+        sku=p.get("styleID", ""),
+        brand=p.get("brand", "Unknown"),
+        model=p.get("name", ""),
+        colorway=p.get("colorway", ""),
+        year=int(p["releaseDate"][:4]) if p.get("releaseDate") else None,
+        release_date=p.get("releaseDate", ""),
+        retail_price=p.get("retailPrice"),
+        description=p.get("description", ""),
+        resell_prices=resell_prices,
+        images=images,
+        sources=[],
+        aliases=[],
+    )
+
+
 async def _live_search(
     q: str,
     brand: Optional[str],
@@ -164,17 +199,7 @@ async def _live_search(
             if brand and p.get("brand", "").lower() != brand.lower():
                 continue
 
-            shoe = Shoe(
-                id=p.get("styleID", ""),
-                sku=p.get("styleID", ""),
-                brand=p.get("brand", "Unknown"),
-                model=p.get("name", ""),
-                colorway=p.get("colorway", ""),
-                year=int(p["releaseDate"][:4]) if p.get("releaseDate") else None,
-                images=[p["thumbnail"]] if p.get("thumbnail") else [],
-                sources=[],
-                aliases=[],
-            )
+            shoe = _sneaks_product_to_shoe(p)
             results.append((shoe, 0.5))
 
         return results
@@ -299,10 +324,17 @@ async def get_brands() -> dict:
                 brands.add(payload["brand"])
 
         brand_list = sorted(list(brands))
-        return _wrap(brand_list)
+        if brand_list:
+            return _wrap(brand_list)
+    except Exception:
+        pass
 
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Failed to fetch brands: {e}")
+    # Fallback: return common sneaker brands
+    fallback_brands = [
+        "Adidas", "Converse", "Jordan", "New Balance",
+        "Nike", "Puma", "Reebok", "Vans", "Yeezy",
+    ]
+    return _wrap(fallback_brands)
 
 
 @router.get("/sneakers/trending")
@@ -317,17 +349,7 @@ async def get_trending_sneakers(
         if products:
             sneakers = []
             for p in products:
-                shoe = Shoe(
-                    id=p.get("styleID", ""),
-                    sku=p.get("styleID", ""),
-                    brand=p.get("brand", "Unknown"),
-                    model=p.get("name", ""),
-                    colorway=p.get("colorway", ""),
-                    year=int(p["releaseDate"][:4]) if p.get("releaseDate") else None,
-                    images=[p["thumbnail"]] if p.get("thumbnail") else [],
-                    sources=[],
-                    aliases=[],
-                )
+                shoe = _sneaks_product_to_shoe(p)
                 sneakers.append(_shoe_to_sneaker(shoe))
             return _wrap(sneakers)
     except Exception:
