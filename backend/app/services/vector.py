@@ -44,9 +44,30 @@ class VectorService:
                     collection_name=self.collection,
                     vectors_config=qmodels.VectorParams(size=self.vector_size, distance=qmodels.Distance.COSINE),
                 )
+            # Ensure text indexes exist for search filtering
+            self._ensure_text_indexes()
         except Exception:  # noqa: BLE001
             # Best-effort creation, raise on actual usage
             pass
+
+    def _ensure_text_indexes(self) -> None:
+        """Create text payload indexes for MatchText search filtering."""
+        for field in ("brand", "model", "colorway", "sku"):
+            try:
+                self.client.create_payload_index(
+                    collection_name=self.collection,
+                    field_name=field,
+                    field_schema=qmodels.TextIndexParams(
+                        type="text",
+                        tokenizer=qmodels.TokenizerType.WORD,
+                        min_token_len=2,
+                        max_token_len=20,
+                        lowercase=True,
+                    ),
+                )
+            except Exception:
+                # Index may already exist
+                pass
 
     async def query(self, vector: np.ndarray, top_k: int = 5) -> List[VectorSearchResult]:
         def _query() -> List[VectorSearchResult]:
