@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from typing import Optional
 
 from fastapi import Depends, Header, HTTPException
 from firebase_admin import auth as firebase_auth
 
 from app.services.auth import FirebaseUser, get_auth_service
+
+_logger = logging.getLogger("soleid.auth")
+
+# Set to "true" to reject requests without valid App Check tokens
+_ENFORCE_APP_CHECK = os.getenv("ENFORCE_APP_CHECK", "false").lower() == "true"
 
 
 async def get_current_user(
@@ -122,3 +129,29 @@ async def require_admin(
             detail="Admin access required",
         )
     return user
+
+
+async def verify_app_check(
+    x_firebase_appcheck: Optional[str] = Header(None, alias="X-Firebase-AppCheck"),
+) -> Optional[dict]:
+    """
+    Verify Firebase App Check token.
+
+    When ENFORCE_APP_CHECK=true, rejects requests without a valid token.
+    Otherwise, logs a warning and allows the request through.
+    """
+    if not x_firebase_appcheck:
+        if _ENFORCE_APP_CHECK:
+            raise HTTPException(status_code=401, detail="App Check token missing")
+        return None
+
+    try:
+        from firebase_admin import app_check
+
+        claims = app_check.verify_token(x_firebase_appcheck)
+        return claims
+    except Exception as e:
+        _logger.warning("App Check verification failed: %s", e)
+        if _ENFORCE_APP_CHECK:
+            raise HTTPException(status_code=401, detail="Invalid App Check token")
+        return None
