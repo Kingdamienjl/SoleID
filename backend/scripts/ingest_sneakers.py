@@ -2,12 +2,14 @@
 """
 Sneaker Data Ingestion Script
 Reads sneakers from the scraper SQLite database and ingests them into Qdrant.
+Supports both remote image URLs (from Sneaks-API) and local image files.
 """
 
 import os
 import sys
 import asyncio
 import hashlib
+import io
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import sqlite3
@@ -15,7 +17,20 @@ from PIL import Image
 import numpy as np
 
 # Add parent to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+BACKEND_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(BACKEND_DIR))
+
+# Load .env from backend directory
+_env_file = BACKEND_DIR / ".env"
+if _env_file.exists():
+    with open(_env_file) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, value = line.partition("=")
+                key, value = key.strip(), value.strip()
+                if key and key not in os.environ:
+                    os.environ[key] = value
 
 from app.services.embedding import get_embedding_service, preprocess_image_for_openclip
 from app.services.vector import get_vector_service
@@ -24,17 +39,8 @@ from app.services.vector import get_vector_service
 SCRAPER_DB = Path(__file__).parent.parent.parent / "sneaker-scraper" / "sneakers.db"
 SCRAPER_DATA = Path(__file__).parent.parent.parent / "sneaker-scraper" / "data"
 
-# Image directories to search
-IMAGE_DIRS = [
-    "scraped_images",  # Newly scraped images
-    "real_sneaker_images",
-    "enhanced_sneaker_images",
-    "enhanced_images",
-    "comprehensive_images",
-    "api_images",
-    "direct_images",
-    "images",
-]
+# Image cache directory (to avoid re-downloading)
+IMAGE_CACHE = SCRAPER_DATA / "image_cache"
 
 
 def get_db_connection():
@@ -45,21 +51,20 @@ def get_db_connection():
 
 
 def get_sneakers_with_images(conn, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Fetch sneakers that have associated images."""
+    """Fetch sneakers that have associated image URLs."""
     cursor = conn.cursor()
 
+    # Only fetch sneakers that have at least one image
     query = """
         SELECT
             s.id, s.name, s.brand, s.model, s.colorway, s.sku,
             s.retail_price, s.release_date, s.description,
-            si.image_url, si.google_drive_id, si.image_type
+            si.image_url, si.image_type
         FROM sneakers s
-        LEFT JOIN sneaker_images si ON s.id = si.sneaker_id
+        INNER JOIN sneaker_images si ON s.id = si.sneaker_id
+        WHERE si.image_url IS NOT NULL AND si.image_url != ''
         ORDER BY s.id
     """
-    if limit:
-        query += f" LIMIT {limit}"
-
     cursor.execute(query)
     rows = cursor.fetchall()
 
@@ -80,94 +85,97 @@ def get_sneakers_with_images(conn, limit: Optional[int] = None) -> List[Dict[str
                 "description": row[8],
                 "images": []
             }
-        if row[9]:  # image_url
-            sneakers[sid]["images"].append({
-                "url": row[9],
-                "drive_id": row[10],
-                "type": row[11]
-            })
+        sneakers[sid]["images"].append({
+            "url": row[9],
+            "type": row[10]
+        })
 
-    return list(sneakers.values())
-
-
-def find_local_image(sneaker: Dict[str, Any]) -> Optional[Path]:
-    """Try to find a local image file for the sneaker."""
-    # Check each image directory
-    for img_dir in IMAGE_DIRS:
-        dir_path = SCRAPER_DATA / img_dir
-        if not dir_path.exists():
-            continue
-
-        # Search for images matching sneaker name/brand/sku
-        search_terms = []
-        if sneaker.get("sku"):
-            search_terms.append(sneaker["sku"].lower().replace("-", "").replace(" ", ""))
-        if sneaker.get("brand"):
-            search_terms.append(sneaker["brand"].lower())
-        if sneaker.get("model"):
-            search_terms.append(sneaker["model"].lower().replace(" ", "_"))
-
-        for img_file in dir_path.glob("*.jpg"):
-            filename = img_file.stem.lower()
-            for term in search_terms:
-                if term and term in filename:
-                    return img_file
-
-        for img_file in dir_path.glob("*.png"):
-            filename = img_file.stem.lower()
-            for term in search_terms:
-                if term and term in filename:
-                    return img_file
-
-    return None
+    result = list(sneakers.values())
+    if limit:
+        result = result[:limit]
+    return result
 
 
-def get_all_local_images() -> List[Path]:
-    """Get all local images from the data directories."""
-    images = []
-    for img_dir in IMAGE_DIRS:
-        dir_path = SCRAPER_DATA / img_dir
-        if dir_path.exists():
-            # Search recursively for images in subdirectories
-            images.extend(dir_path.rglob("*.jpg"))
-            images.extend(dir_path.rglob("*.png"))
-            images.extend(dir_path.rglob("*.jpeg"))
-    return images
-
-
-def generate_point_id(sneaker_id: int, image_path: str) -> str:
+def generate_point_id(sneaker_id: int, image_url: str) -> str:
     """Generate a unique ID for a Qdrant point."""
-    hash_input = f"{sneaker_id}:{image_path}"
+    hash_input = f"{sneaker_id}:{image_url}"
     return hashlib.md5(hash_input.encode()).hexdigest()
 
 
-async def embed_image(image_path: Path) -> Optional[np.ndarray]:
-    """Generate embedding for an image file."""
+def get_cache_path(url: str) -> Path:
+    """Get local cache path for a URL."""
+    url_hash = hashlib.md5(url.encode()).hexdigest()
+    ext = ".jpg"
+    if ".png" in url.lower():
+        ext = ".png"
+    return IMAGE_CACHE / f"{url_hash}{ext}"
+
+
+async def download_image(session, url: str) -> Optional[Image.Image]:
+    """Download an image from URL, using cache if available."""
+    cache_path = get_cache_path(url)
+
+    # Check cache first
+    if cache_path.exists():
+        try:
+            return Image.open(cache_path).convert("RGB")
+        except Exception:
+            cache_path.unlink(missing_ok=True)
+
+    # Download
+    try:
+        resp = await asyncio.to_thread(session.get, url, timeout=15)
+        if resp.status_code != 200:
+            return None
+        img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+        # Cache locally
+        IMAGE_CACHE.mkdir(parents=True, exist_ok=True)
+        img.save(str(cache_path), quality=85)
+        return img
+    except Exception:
+        return None
+
+
+async def embed_pil_image(img: Image.Image) -> Optional[np.ndarray]:
+    """Generate embedding for a PIL Image."""
     try:
         embedding_service = get_embedding_service()
-        img = Image.open(image_path).convert("RGB")
         tensor = preprocess_image_for_openclip(img)
         embedding = await embedding_service.embed_tensor(tensor)
         return embedding
     except Exception as e:
-        print(f"  Error embedding {image_path}: {e}")
+        print(f"  Error embedding image: {e}")
         return None
 
 
-async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
-    """Main ingestion function."""
+async def ingest_sneakers(
+    limit: Optional[int] = None,
+    batch_size: int = 50,
+    max_images_per_shoe: int = 3,
+    source: str = "all",
+):
+    """
+    Main ingestion function.
+
+    Args:
+        limit: Max number of sneakers to process
+        batch_size: How many vectors to upsert at once
+        max_images_per_shoe: Max images to embed per sneaker (saves time/space)
+        source: 'remote' for DB URLs only, 'local' for files only, 'all' for both
+    """
+    import requests
+
     print("=" * 60)
-    print("SoleID Sneaker Data Ingestion")
+    print("SoleID Sneaker Data Ingestion -> Qdrant Cloud")
     print("=" * 60)
 
     # Check database
     print(f"\n1. Checking database: {SCRAPER_DB}")
     if not SCRAPER_DB.exists():
-        print(f"   ERROR: Database not found!")
+        print("   ERROR: Database not found!")
         return
     print("   Database found.")
 
-    # Connect and get stats
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -175,86 +183,110 @@ async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
     total_sneakers = cursor.fetchone()[0]
     print(f"   Total sneakers in DB: {total_sneakers}")
 
-    cursor.execute("SELECT COUNT(*) FROM sneaker_images")
-    total_images = cursor.fetchone()[0]
-    print(f"   Total images in DB: {total_images}")
-
-    # Get local images
-    print(f"\n2. Scanning local image directories...")
-    local_images = get_all_local_images()
-    print(f"   Found {len(local_images)} local image files")
+    cursor.execute("SELECT COUNT(*) FROM sneaker_images WHERE image_url LIKE 'http%'")
+    total_remote = cursor.fetchone()[0]
+    print(f"   Remote image URLs: {total_remote}")
 
     # Initialize services
-    print(f"\n3. Initializing services...")
+    print(f"\n2. Initializing services...")
     embedding_service = get_embedding_service()
     vector_service = get_vector_service()
-    print(f"   Embedding service: {'MOCK MODE' if embedding_service.mock else 'OpenCLIP ViT-B-16'}")
-    print(f"   Vector service: Qdrant collection '{vector_service.collection}'")
+    print(f"   Embedding: {'MOCK MODE' if embedding_service.mock else 'OpenCLIP ViT-B-16'}")
+    print(f"   Qdrant collection: '{vector_service.collection}'")
 
-    # Process local images directly
-    print(f"\n4. Processing images and generating embeddings...")
-    print(f"   (Processing up to {limit or len(local_images)} images)")
+    # Check existing collection size
+    try:
+        info = vector_service.client.get_collection(vector_service.collection)
+        existing_points = info.points_count
+        print(f"   Existing vectors in collection: {existing_points}")
+    except Exception:
+        existing_points = 0
+        print("   Collection will be created on first upsert")
 
-    processed = 0
-    failed = 0
+    # Fetch sneakers with images from DB
+    print(f"\n3. Fetching sneakers with images...")
+    sneakers = get_sneakers_with_images(conn, limit=limit)
+    print(f"   Found {len(sneakers)} sneakers with image URLs")
+
+    if not sneakers:
+        print("   Nothing to ingest!")
+        conn.close()
+        return
+
+    # Process
+    print(f"\n4. Downloading images, generating embeddings, upserting to Qdrant...")
+    print(f"   Max {max_images_per_shoe} image(s) per sneaker, batch size {batch_size}")
+
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "SoleID/1.0 (Sneaker Identification App)"
+    })
+
+    processed_sneakers = 0
+    processed_images = 0
+    failed_downloads = 0
+    failed_embeddings = 0
+    skipped = 0
+
     batch_ids = []
     batch_vectors = []
     batch_payloads = []
 
-    images_to_process = local_images[:limit] if limit else local_images
+    for i, sneaker in enumerate(sneakers):
+        brand = sneaker.get("brand") or "Unknown"
+        model = sneaker.get("model") or sneaker.get("name") or "Unknown"
+        colorway = sneaker.get("colorway") or ""
+        sku = sneaker.get("sku") or ""
+        sneaker_id = sneaker["id"]
 
-    for i, img_path in enumerate(images_to_process):
-        # Extract metadata from folder name or filename
-        # Folder format: Brand_Model_Colorway (e.g., Jordan_Jordan_Classic_BlackBlue)
-        folder_name = img_path.parent.name
-        filename = img_path.stem
-
-        # Try folder name first (more reliable for scraped images)
-        if "_" in folder_name and folder_name != "scraped_images":
-            parts = folder_name.split("_")
-            brand = parts[0].replace("_", " ").title() if parts else "Unknown"
-            # Find colorway (usually last part with color words)
-            colorway_idx = len(parts)
-            for j, p in enumerate(parts[1:], 1):
-                if any(c in p.lower() for c in ["white", "black", "red", "blue", "green", "grey", "brown", "navy"]):
-                    colorway_idx = j
-                    break
-            model = " ".join(parts[1:colorway_idx]).replace("_", " ").title()
-            colorway = " ".join(parts[colorway_idx:]).replace("_", " ").title() if colorway_idx < len(parts) else ""
-        else:
-            parts = filename.split("_")
-            brand = parts[0].title() if parts else "Unknown"
-            model = " ".join(parts[1:]).title() if len(parts) > 1 else filename
-            colorway = ""
-
-        # Create payload matching Shoe schema
+        # Build Shoe-compatible payload
+        image_urls = [img["url"] for img in sneaker["images"]]
         payload = {
-            "id": str(i),
+            "id": str(sneaker_id),
             "brand": brand,
             "model": model,
             "colorway": colorway,
-            "sku": folder_name if folder_name != "scraped_images" else filename,
+            "sku": sku,
             "year": None,
             "aliases": [],
-            "images": [str(img_path)],
-            "sources": [{"name": "local", "url": str(img_path)}],
+            "images": image_urls[:max_images_per_shoe],
+            "sources": [{"name": "sneaks-api", "url": url} for url in image_urls[:max_images_per_shoe]],
             "lastPriceSnapshotAt": None,
         }
 
-        # Generate embedding
-        embedding = await embed_image(img_path)
-        if embedding is None:
-            failed += 1
-            continue
+        # Process up to max_images_per_shoe images
+        shoe_embedded = False
+        for img_info in sneaker["images"][:max_images_per_shoe]:
+            url = img_info["url"]
 
-        # Add to batch
-        point_id = generate_point_id(i, str(img_path))
-        batch_ids.append(point_id)
-        batch_vectors.append(embedding)
-        batch_payloads.append(payload)
-        processed += 1
+            if not url.startswith("http"):
+                skipped += 1
+                continue
 
-        # Upsert batch
+            # Download
+            img = await download_image(session, url)
+            if img is None:
+                failed_downloads += 1
+                continue
+
+            # Embed
+            embedding = await embed_pil_image(img)
+            if embedding is None:
+                failed_embeddings += 1
+                continue
+
+            # Add to batch
+            point_id = generate_point_id(sneaker_id, url)
+            batch_ids.append(point_id)
+            batch_vectors.append(embedding)
+            batch_payloads.append(payload)
+            processed_images += 1
+            shoe_embedded = True
+
+        if shoe_embedded:
+            processed_sneakers += 1
+
+        # Upsert batch when full
         if len(batch_ids) >= batch_size:
             print(f"   Upserting batch of {len(batch_ids)} vectors...")
             await vector_service.upsert(
@@ -266,9 +298,14 @@ async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
             batch_vectors = []
             batch_payloads = []
 
-        # Progress
+        # Progress every 100 sneakers
         if (i + 1) % 100 == 0:
-            print(f"   Progress: {i + 1}/{len(images_to_process)} ({processed} embedded, {failed} failed)")
+            print(
+                f"   Progress: {i + 1}/{len(sneakers)} sneakers "
+                f"({processed_images} images embedded, "
+                f"{failed_downloads} download fails, "
+                f"{failed_embeddings} embed fails)"
+            )
 
     # Final batch
     if batch_ids:
@@ -279,22 +316,39 @@ async def ingest_sneakers(limit: Optional[int] = None, batch_size: int = 50):
             payloads=batch_payloads
         )
 
+    # Final stats
     print(f"\n5. Ingestion complete!")
-    print(f"   Successfully processed: {processed}")
-    print(f"   Failed: {failed}")
-    print("=" * 60)
+    print(f"   Sneakers processed: {processed_sneakers}/{len(sneakers)}")
+    print(f"   Images embedded:    {processed_images}")
+    print(f"   Download failures:  {failed_downloads}")
+    print(f"   Embedding failures: {failed_embeddings}")
+    print(f"   Skipped (non-URL):  {skipped}")
 
+    # Verify collection
+    try:
+        info = vector_service.client.get_collection(vector_service.collection)
+        print(f"   Qdrant collection '{vector_service.collection}': {info.points_count} total vectors")
+    except Exception as e:
+        print(f"   Could not verify collection: {e}")
+
+    print("=" * 60)
     conn.close()
+    session.close()
 
 
 async def main():
     import argparse
     parser = argparse.ArgumentParser(description="Ingest sneaker data into Qdrant")
-    parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of sneakers to process")
     parser.add_argument("--batch-size", type=int, default=50, help="Batch size for upserts")
+    parser.add_argument("--max-images", type=int, default=3, help="Max images per sneaker")
     args = parser.parse_args()
 
-    await ingest_sneakers(limit=args.limit, batch_size=args.batch_size)
+    await ingest_sneakers(
+        limit=args.limit,
+        batch_size=args.batch_size,
+        max_images_per_shoe=args.max_images,
+    )
 
 
 if __name__ == "__main__":
