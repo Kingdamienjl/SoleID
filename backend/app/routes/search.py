@@ -3,10 +3,14 @@ Text-based search endpoints for sneakers.
 
 Provides search functionality by querying Qdrant payload fields
 (brand, model, colorway, sku) without requiring image input.
+
+All responses wrapped in ApiResponse envelope for Android app compatibility.
 """
+import time
+import hashlib
 from fastapi import APIRouter, Query, HTTPException
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field
 
 from app.schemas.shoe import Shoe
 from app.services.vector import get_vector_service
@@ -15,149 +19,112 @@ from app.services.pricing.sneaks_bridge import get_sneaks_bridge
 router = APIRouter()
 
 
-class SearchResult(BaseModel):
-    """Single search result with relevance score."""
-    shoe: Shoe
-    score: float
+# ── Android-compatible response models ──────────────────────────
+
+class ApiResponse(BaseModel):
+    """Wrapper matching Android ApiResponse<T> data class."""
+    success: bool = True
+    data: Any = None
+    message: str = ""
+    error: Optional[str] = None
+    code: int = 200
+    timestamp: int = 0
+    version: str = "1.0"
+
+    class Config:
+        # Allow arbitrary types for the 'data' field
+        arbitrary_types_allowed = True
 
 
-class SearchResponse(BaseModel):
-    """Search response containing results and metadata."""
-    results: List[SearchResult]
-    total: int
+class SneakerOut(BaseModel):
+    """Sneaker output matching Android Sneaker data class fields."""
+    id: int
+    name: str
+    brand: str
+    model: str = ""
+    colorway: str = ""
+    sku: str = ""
+    release_date: str = ""
+    retail_price: Optional[float] = None
+    description: str = ""
+    image_url: str = ""
+    images: List[str] = Field(default_factory=list)
+    category: str = ""
+    gender: str = ""
+    sizes: List[str] = Field(default_factory=list)
+    materials: List[str] = Field(default_factory=list)
+    technologies: List[str] = Field(default_factory=list)
+    popularity_score: float = 0.0
+    rating: float = 0.0
+    review_count: int = 0
+
+
+class SearchResponseOut(BaseModel):
+    """Search response matching Android SearchResponse<Sneaker>."""
+    results: List[SneakerOut]
     query: str
-    filters: dict
+    total_results: int
+    search_time: float
+    suggestions: List[str] = Field(default_factory=list)
+    filters_applied: dict = Field(default_factory=dict)
 
 
-class BrandsResponse(BaseModel):
-    """Response containing list of available brands."""
-    brands: List[str]
-    total: int
+# ── Helpers ─────────────────────────────────────────────────────
 
-
-class TrendingResponse(BaseModel):
-    """Response containing trending/popular shoes."""
-    shoes: List[Shoe]
-    total: int
-
-
-@router.get("/search", response_model=SearchResponse)
-async def search_sneakers(
-    q: str = Query(..., min_length=1, description="Search query"),
-    brand: Optional[str] = Query(None, description="Filter by brand"),
-    limit: int = Query(20, ge=1, le=100, description="Maximum results to return"),
-    offset: int = Query(0, ge=0, description="Offset for pagination"),
-) -> SearchResponse:
-    """
-    Search for sneakers by text query.
-
-    Searches across brand, model, colorway, SKU, and aliases.
-    Results are sorted by relevance.
-
-    - **q**: Search query (required)
-    - **brand**: Filter results to specific brand (optional)
-    - **limit**: Maximum number of results (default: 20, max: 100)
-    - **offset**: Pagination offset (default: 0)
-    """
-    vector_service = get_vector_service()
-    query_lower = q.lower()
-
+def _shoe_to_sneaker(shoe: Shoe) -> SneakerOut:
+    """Convert internal Shoe to Android-compatible SneakerOut."""
+    # Generate stable numeric ID from string id
     try:
-        # Use Qdrant scroll with filtering to search by payload
-        # This searches the stored shoe metadata
-        from qdrant_client.http import models as qmodels
+        numeric_id = int(shoe.id)
+    except (ValueError, TypeError):
+        numeric_id = int(hashlib.md5(shoe.id.encode()).hexdigest()[:15], 16)
 
-        # Build filter conditions
-        must_conditions = []
+    # Build display name, avoiding duplicate brand prefix
+    model = shoe.model
+    brand = shoe.brand
+    if model.lower().startswith(brand.lower()):
+        name = model
+    else:
+        name = f"{brand} {model}".strip()
+    if not name:
+        name = shoe.sku
 
-        # Text search across multiple fields using match
-        should_conditions = [
-            qmodels.FieldCondition(
-                key="brand",
-                match=qmodels.MatchText(text=query_lower),
-            ),
-            qmodels.FieldCondition(
-                key="model",
-                match=qmodels.MatchText(text=query_lower),
-            ),
-            qmodels.FieldCondition(
-                key="colorway",
-                match=qmodels.MatchText(text=query_lower),
-            ),
-            qmodels.FieldCondition(
-                key="sku",
-                match=qmodels.MatchText(text=query_lower),
-            ),
-        ]
+    return SneakerOut(
+        id=numeric_id,
+        name=name,
+        brand=brand,
+        model=model,
+        colorway=shoe.colorway,
+        sku=shoe.sku,
+        release_date=str(shoe.year) if shoe.year else "",
+        retail_price=None,
+        description="",
+        image_url=shoe.images[0] if shoe.images else "",
+        images=shoe.images,
+    )
 
-        # Add brand filter if specified
-        if brand:
-            must_conditions.append(
-                qmodels.FieldCondition(
-                    key="brand",
-                    match=qmodels.MatchValue(value=brand),
-                )
-            )
 
-        # Build the filter
-        search_filter = qmodels.Filter(
-            should=should_conditions,
-            must=must_conditions if must_conditions else None,
-        )
+def _wrap(data: Any, message: str = "") -> dict:
+    """Wrap data in ApiResponse envelope."""
+    return ApiResponse(
+        success=True,
+        data=data,
+        message=message,
+        timestamp=int(time.time() * 1000),
+    ).model_dump()
 
-        # Scroll through results with filter
-        results, _ = vector_service.client.scroll(
-            collection_name=vector_service.collection,
-            scroll_filter=search_filter,
-            limit=limit + offset,
-            with_payload=True,
-            with_vectors=False,
-        )
 
-        # Apply offset and convert to response format
-        paginated_results = results[offset:offset + limit] if offset < len(results) else []
+def _wrap_error(error: str, code: int = 500) -> dict:
+    """Wrap error in ApiResponse envelope."""
+    return ApiResponse(
+        success=False,
+        error=error,
+        code=code,
+        timestamp=int(time.time() * 1000),
+    ).model_dump()
 
-        search_results = []
-        for point in paginated_results:
-            payload = point.payload or {}
-            shoe = Shoe(**payload)
-            # Calculate simple relevance score based on field matches
-            score = _calculate_relevance(query_lower, shoe)
-            search_results.append(SearchResult(shoe=shoe, score=score))
 
-        # Sort by score descending
-        search_results.sort(key=lambda x: x.score, reverse=True)
-
-        # If local results are sparse, supplement with live Sneaks-API data
-        if len(search_results) < 3:
-            live_results = await _live_search(q, brand, limit - len(search_results))
-            existing_skus = {r.shoe.sku.upper() for r in search_results}
-            for lr in live_results:
-                if lr.shoe.sku.upper() not in existing_skus:
-                    search_results.append(lr)
-                    existing_skus.add(lr.shoe.sku.upper())
-            search_results.sort(key=lambda x: x.score, reverse=True)
-
-        return SearchResponse(
-            results=search_results[:limit],
-            total=len(search_results),
-            query=q,
-            filters={"brand": brand} if brand else {},
-        )
-
-    except Exception as e:
-        # If Qdrant search fails entirely, try live search as primary
-        live_results = await _live_search(q, brand, limit)
-        if live_results:
-            return SearchResponse(
-                results=live_results,
-                total=len(live_results),
-                query=q,
-                filters={"brand": brand} if brand else {},
-            )
-        # Fall back to in-memory search
-        return await _fallback_search(q, brand, limit, offset)
-
+# ── Internal search helpers ─────────────────────────────────────
 
 def _calculate_relevance(query: str, shoe: Shoe) -> float:
     """Calculate relevance score for a shoe based on query match."""
@@ -172,7 +139,7 @@ def _calculate_relevance(query: str, shoe: Shoe) -> float:
         if term in shoe.colorway.lower():
             score += 0.6
         if term in shoe.sku.lower():
-            score += 1.0  # SKU exact match is high value
+            score += 1.0
         for alias in shoe.aliases:
             if term in alias.lower():
                 score += 0.5
@@ -180,64 +147,12 @@ def _calculate_relevance(query: str, shoe: Shoe) -> float:
     return score
 
 
-async def _fallback_search(
-    q: str,
-    brand: Optional[str],
-    limit: int,
-    offset: int
-) -> SearchResponse:
-    """Fallback search by fetching all shoes and filtering in memory."""
-    vector_service = get_vector_service()
-    query_lower = q.lower()
-
-    try:
-        # Fetch all points (limited to reasonable amount)
-        results, _ = vector_service.client.scroll(
-            collection_name=vector_service.collection,
-            limit=1000,
-            with_payload=True,
-            with_vectors=False,
-        )
-
-        # Filter in memory
-        matching = []
-        for point in results:
-            payload = point.payload or {}
-            shoe = Shoe(**payload)
-
-            # Check if query matches any field
-            searchable = f"{shoe.brand} {shoe.model} {shoe.colorway} {shoe.sku} {' '.join(shoe.aliases)}".lower()
-            if query_lower in searchable:
-                # Apply brand filter
-                if brand and shoe.brand.lower() != brand.lower():
-                    continue
-
-                score = _calculate_relevance(query_lower, shoe)
-                matching.append(SearchResult(shoe=shoe, score=score))
-
-        # Sort by score
-        matching.sort(key=lambda x: x.score, reverse=True)
-
-        # Apply pagination
-        paginated = matching[offset:offset + limit]
-
-        return SearchResponse(
-            results=paginated,
-            total=len(matching),
-            query=q,
-            filters={"brand": brand} if brand else {},
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Search unavailable: {e}")
-
-
 async def _live_search(
     q: str,
     brand: Optional[str],
     limit: int,
-) -> List[SearchResult]:
-    """Search via Sneaks-API bridge for live StockX/GOAT results."""
+) -> List[tuple]:
+    """Search via Sneaks-API bridge. Returns list of (Shoe, score) tuples."""
     try:
         bridge = get_sneaks_bridge()
         products = await bridge.search(q, limit=limit)
@@ -246,7 +161,6 @@ async def _live_search(
 
         results = []
         for p in products:
-            # Apply brand filter if specified
             if brand and p.get("brand", "").lower() != brand.lower():
                 continue
 
@@ -261,7 +175,7 @@ async def _live_search(
                 sources=[],
                 aliases=[],
             )
-            results.append(SearchResult(shoe=shoe, score=0.5))
+            results.append((shoe, 0.5))
 
         return results
     except Exception as e:
@@ -270,15 +184,107 @@ async def _live_search(
         return []
 
 
-@router.get("/brands", response_model=BrandsResponse)
-async def get_brands() -> BrandsResponse:
-    """
-    Get list of all available brands in the database.
-    """
+# ── Endpoints ───────────────────────────────────────────────────
+
+@router.get("/search")
+async def search_sneakers(
+    q: str = Query(..., min_length=1, description="Search query"),
+    brand: Optional[str] = Query(None, description="Filter by brand"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum results to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    page: int = Query(1, ge=1, description="Page number (alternative to offset)"),
+    per_page: int = Query(20, ge=1, le=100, description="Results per page"),
+) -> dict:
+    """Search for sneakers by text query."""
+    start_time = time.time()
+    vector_service = get_vector_service()
+    query_lower = q.lower()
+
+    # Use page/per_page if offset wasn't explicitly set
+    if offset == 0 and page > 1:
+        offset = (page - 1) * per_page
+        limit = per_page
+
+    try:
+        from qdrant_client.http import models as qmodels
+
+        should_conditions = [
+            qmodels.FieldCondition(key="brand", match=qmodels.MatchText(text=query_lower)),
+            qmodels.FieldCondition(key="model", match=qmodels.MatchText(text=query_lower)),
+            qmodels.FieldCondition(key="colorway", match=qmodels.MatchText(text=query_lower)),
+            qmodels.FieldCondition(key="sku", match=qmodels.MatchText(text=query_lower)),
+        ]
+
+        must_conditions = []
+        if brand:
+            must_conditions.append(
+                qmodels.FieldCondition(key="brand", match=qmodels.MatchValue(value=brand))
+            )
+
+        search_filter = qmodels.Filter(
+            should=should_conditions,
+            must=must_conditions if must_conditions else None,
+        )
+
+        results, _ = vector_service.client.scroll(
+            collection_name=vector_service.collection,
+            scroll_filter=search_filter,
+            limit=limit + offset,
+            with_payload=True,
+            with_vectors=False,
+        )
+
+        paginated_results = results[offset:offset + limit] if offset < len(results) else []
+
+        scored_shoes = []
+        for point in paginated_results:
+            payload = point.payload or {}
+            shoe = Shoe(**payload)
+            score = _calculate_relevance(query_lower, shoe)
+            scored_shoes.append((shoe, score))
+
+        scored_shoes.sort(key=lambda x: x[1], reverse=True)
+
+        # Supplement with live Sneaks-API if sparse results
+        if len(scored_shoes) < 3:
+            live_results = await _live_search(q, brand, limit - len(scored_shoes))
+            existing_skus = {s.sku.upper() for s, _ in scored_shoes}
+            for shoe, score in live_results:
+                if shoe.sku.upper() not in existing_skus:
+                    scored_shoes.append((shoe, score))
+                    existing_skus.add(shoe.sku.upper())
+            scored_shoes.sort(key=lambda x: x[1], reverse=True)
+
+        sneakers = [_shoe_to_sneaker(shoe) for shoe, _ in scored_shoes[:limit]]
+
+    except Exception:
+        # Qdrant failed - try live search
+        live_results = await _live_search(q, brand, limit)
+        if live_results:
+            sneakers = [_shoe_to_sneaker(shoe) for shoe, _ in live_results]
+        else:
+            sneakers = []
+
+    search_time = time.time() - start_time
+
+    search_data = SearchResponseOut(
+        results=sneakers,
+        query=q,
+        total_results=len(sneakers),
+        search_time=round(search_time, 3),
+        suggestions=[],
+        filters_applied={"brand": brand} if brand else {},
+    ).model_dump()
+
+    return _wrap(search_data)
+
+
+@router.get("/brands")
+async def get_brands() -> dict:
+    """Get list of all available brands in the database."""
     vector_service = get_vector_service()
 
     try:
-        # Fetch all points to extract unique brands
         results, _ = vector_service.client.scroll(
             collection_name=vector_service.collection,
             limit=10000,
@@ -293,31 +299,23 @@ async def get_brands() -> BrandsResponse:
                 brands.add(payload["brand"])
 
         brand_list = sorted(list(brands))
-
-        return BrandsResponse(
-            brands=brand_list,
-            total=len(brand_list),
-        )
+        return _wrap(brand_list)
 
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch brands: {e}")
 
 
-@router.get("/sneakers/trending", response_model=TrendingResponse)
+@router.get("/sneakers/trending")
 async def get_trending_sneakers(
-    limit: int = Query(10, ge=1, le=50, description="Number of trending sneakers to return"),
-) -> TrendingResponse:
-    """
-    Get trending/popular sneakers.
-
-    Uses live Sneaks-API data (StockX trending) with local DB fallback.
-    """
+    limit: int = Query(10, ge=1, le=50, description="Number of trending sneakers"),
+) -> dict:
+    """Get trending/popular sneakers."""
     # Try live trending from Sneaks-API first
     try:
         bridge = get_sneaks_bridge()
         products = await bridge.get_trending(limit=limit)
         if products:
-            shoes = []
+            sneakers = []
             for p in products:
                 shoe = Shoe(
                     id=p.get("styleID", ""),
@@ -330,8 +328,8 @@ async def get_trending_sneakers(
                     sources=[],
                     aliases=[],
                 )
-                shoes.append(shoe)
-            return TrendingResponse(shoes=shoes, total=len(shoes))
+                sneakers.append(_shoe_to_sneaker(shoe))
+            return _wrap(sneakers)
     except Exception:
         pass
 
@@ -345,37 +343,32 @@ async def get_trending_sneakers(
             with_vectors=False,
         )
 
-        shoes = []
+        sneakers = []
         for point in results:
             payload = point.payload or {}
-            shoes.append(Shoe(**payload))
+            shoe = Shoe(**payload)
+            sneakers.append(_shoe_to_sneaker(shoe))
 
-        return TrendingResponse(shoes=shoes, total=len(shoes))
+        return _wrap(sneakers)
 
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch trending: {e}")
 
 
-@router.get("/sneakers/recent", response_model=TrendingResponse)
+@router.get("/sneakers/recent")
 async def get_recent_sneakers(
-    limit: int = Query(10, ge=1, le=50, description="Number of recent sneakers to return"),
-) -> TrendingResponse:
-    """
-    Get recently added sneakers.
-    """
-    # Same as trending for now - in production would sort by creation date
+    limit: int = Query(10, ge=1, le=50, description="Number of recent sneakers"),
+) -> dict:
+    """Get recently added sneakers."""
     return await get_trending_sneakers(limit=limit)
 
 
-@router.get("/sneakers/{shoe_id}", response_model=Shoe)
-async def get_sneaker_by_id(shoe_id: str) -> Shoe:
-    """
-    Get a specific sneaker by ID.
-    """
+@router.get("/sneakers/{shoe_id}")
+async def get_sneaker_by_id(shoe_id: str) -> dict:
+    """Get a specific sneaker by ID."""
     vector_service = get_vector_service()
 
     try:
-        # Retrieve point by ID
         points = vector_service.client.retrieve(
             collection_name=vector_service.collection,
             ids=[shoe_id],
@@ -387,7 +380,8 @@ async def get_sneaker_by_id(shoe_id: str) -> Shoe:
             raise HTTPException(status_code=404, detail="Sneaker not found")
 
         payload = points[0].payload or {}
-        return Shoe(**payload)
+        shoe = Shoe(**payload)
+        return _wrap(_shoe_to_sneaker(shoe).model_dump())
 
     except HTTPException:
         raise

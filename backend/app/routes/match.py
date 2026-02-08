@@ -2,34 +2,26 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from typing import List, Optional
 
 from app.dependencies.auth import get_current_user
-from app.schemas.match import MatchResponse, Candidate
 from app.services.auth import FirebaseUser
-from app.schemas.validation import ValidationResult
 from app.services.embedding import get_embedding_service
 from app.services.vector import get_vector_service
 from app.services.validation import get_validation_service
 from app.services.embedding import preprocess_image_for_openclip
+from app.routes.search import _shoe_to_sneaker
 from PIL import Image
 import io
 
 router = APIRouter()
 
 
-class MatchErrorResponse:
-    """Error response with validation details."""
-    def __init__(self, validation: ValidationResult, message: str):
-        self.validation = validation
-        self.message = message
-
-
-@router.post("/match", response_model=MatchResponse)
+@router.post("/match")
 async def match_endpoint(
     image: UploadFile = File(...),
     top_k: int = Query(default=5, ge=1, le=20, description="Number of candidates to return"),
     min_score: float = Query(default=0.0, ge=0.0, le=1.0, description="Minimum similarity score threshold"),
     skip_validation: bool = Query(default=False, description="Skip shoe detection validation"),
     user: FirebaseUser = Depends(get_current_user),
-) -> MatchResponse:
+) -> dict:
     """
     Match an uploaded image against the sneaker database.
 
@@ -72,12 +64,14 @@ async def match_endpoint(
     vector_service = get_vector_service()
     results = await vector_service.query(vector, top_k=top_k)
 
-    # Filter by min_score and build response
-    candidates: List[Candidate] = []
+    # Filter by min_score and build response with Android-compatible sneaker format
+    candidates = []
     for item in results:
         if item.score >= min_score:
-            candidates.append(
-                Candidate(score=item.score, shoe=item.payload),
-            )
+            sneaker_out = _shoe_to_sneaker(item.payload)
+            candidates.append({
+                "score": item.score,
+                "shoe": sneaker_out.model_dump(),
+            })
 
-    return MatchResponse(candidates=candidates)
+    return {"candidates": candidates}
