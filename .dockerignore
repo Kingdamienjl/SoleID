@@ -1,0 +1,11 @@
+android-app/
+sneaker-scraper/
+.git/
+*.apk
+*.keystore
+*.jks
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+backend/.env
+backend/.env.*
