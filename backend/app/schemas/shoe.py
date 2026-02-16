@@ -22,3 +22,4 @@ class Shoe(BaseModel):
     description: str = ""
     release_date: str = ""
     resell_prices: Optional[dict] = None
+    gender: str = ""

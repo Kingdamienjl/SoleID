@@ -12,7 +12,7 @@ from fastapi import APIRouter, Query, HTTPException
 from typing import List, Optional, Any
 from pydantic import BaseModel, Field
 
-from app.schemas.shoe import Shoe
+from app.schemas.shoe import Shoe, SourceRef
 from app.services.vector import get_vector_service
 from app.services.pricing.sneaks_bridge import get_sneaks_bridge
 
@@ -49,6 +49,7 @@ class SneakerOut(BaseModel):
     description: str = ""
     image_url: str = ""
     images: List[str] = Field(default_factory=list)
+    resell_prices: Optional[dict] = None
     category: str = ""
     gender: str = ""
     sizes: List[str] = Field(default_factory=list)
@@ -101,6 +102,8 @@ def _shoe_to_sneaker(shoe: Shoe) -> SneakerOut:
         description=shoe.description,
         image_url=shoe.images[0] if shoe.images else "",
         images=shoe.images,
+        resell_prices=shoe.resell_prices,
+        gender=shoe.gender,
     )
 
 
@@ -165,6 +168,14 @@ def _sneaks_product_to_shoe(p: dict) -> Shoe:
     resell = p.get("lowestResellPrice") or {}
     resell_prices = {k: v for k, v in resell.items() if v is not None} or None
 
+    # Build source links for StockX/GOAT
+    sources = []
+    resell_links = p.get("resellLinks") or {}
+    if resell_links.get("stockX"):
+        sources.append(SourceRef(name="StockX", url=resell_links["stockX"]))
+    if resell_links.get("goat"):
+        sources.append(SourceRef(name="GOAT", url=resell_links["goat"]))
+
     return Shoe(
         id=p.get("styleID", ""),
         sku=p.get("styleID", ""),
@@ -176,8 +187,9 @@ def _sneaks_product_to_shoe(p: dict) -> Shoe:
         retail_price=p.get("retailPrice"),
         description=p.get("description", ""),
         resell_prices=resell_prices,
+        gender=p.get("gender", ""),
         images=images,
-        sources=[],
+        sources=sources,
         aliases=[],
     )
 
