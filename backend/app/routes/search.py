@@ -399,25 +399,105 @@ async def get_recent_sneakers(
 
 @router.get("/sneakers/{shoe_id}")
 async def get_sneaker_by_id(shoe_id: str) -> dict:
-    """Get a specific sneaker by ID."""
+    """Get a specific sneaker by Android numeric ID."""
     vector_service = get_vector_service()
 
+    # The Android app uses a numeric ID computed from the shoe's string ID via MD5.
+    # Qdrant points are stored with UUID or other string IDs, so we can't retrieve
+    # directly — we scroll all payloads and find the matching shoe by recomputing
+    # the same numeric ID that _shoe_to_sneaker produces.
     try:
-        points = vector_service.client.retrieve(
+        target_id = int(shoe_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Sneaker not found")
+
+    try:
+        results, _ = vector_service.client.scroll(
             collection_name=vector_service.collection,
-            ids=[shoe_id],
+            limit=10000,
             with_payload=True,
             with_vectors=False,
         )
 
-        if not points:
-            raise HTTPException(status_code=404, detail="Sneaker not found")
+        for point in results:
+            payload = point.payload or {}
+            shoe = Shoe(**payload)
+            try:
+                candidate_id = int(shoe.id)
+            except (ValueError, TypeError):
+                candidate_id = int(hashlib.md5(shoe.id.encode()).hexdigest()[:15], 16)
+            if candidate_id == target_id:
+                return _wrap(_shoe_to_sneaker(shoe).model_dump())
 
-        payload = points[0].payload or {}
-        shoe = Shoe(**payload)
-        return _wrap(_shoe_to_sneaker(shoe).model_dump())
+        raise HTTPException(status_code=404, detail="Sneaker not found")
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch sneaker: {e}")
+
+
+@router.get("/brands/{brand}/sneakers")
+async def get_sneakers_by_brand(
+    brand: str,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+) -> dict:
+    """Get sneakers filtered by brand."""
+    vector_service = get_vector_service()
+    offset = (page - 1) * per_page
+
+    try:
+        from qdrant_client.http import models as qmodels
+        results, _ = vector_service.client.scroll(
+            collection_name=vector_service.collection,
+            scroll_filter=qmodels.Filter(
+                must=[qmodels.FieldCondition(key="brand", match=qmodels.MatchValue(value=brand))]
+            ),
+            limit=per_page + offset,
+            with_payload=True,
+            with_vectors=False,
+        )
+        paginated = results[offset:offset + per_page]
+        sneakers = [_shoe_to_sneaker(Shoe(**p.payload)) for p in paginated if p.payload]
+        return _wrap(sneakers)
+    except Exception:
+        pass
+
+    # Fallback: live search
+    live = await _live_search(brand, brand=brand, limit=per_page)
+    sneakers = [_shoe_to_sneaker(shoe) for shoe, _ in live]
+    return _wrap(sneakers)
+
+
+@router.get("/search/suggestions")
+async def get_search_suggestions(
+    q: str = Query(..., min_length=1, description="Partial query for suggestions"),
+    limit: int = Query(5, ge=1, le=20),
+) -> dict:
+    """Return search autocomplete suggestions."""
+    vector_service = get_vector_service()
+    query_lower = q.lower()
+    suggestions = set()
+
+    try:
+        from qdrant_client.http import models as qmodels
+        for field in ("brand", "model"):
+            results, _ = vector_service.client.scroll(
+                collection_name=vector_service.collection,
+                scroll_filter=qmodels.Filter(
+                    should=[qmodels.FieldCondition(key=field, match=qmodels.MatchText(text=query_lower))]
+                ),
+                limit=limit * 3,
+                with_payload=[field],
+                with_vectors=False,
+            )
+            for point in results:
+                val = (point.payload or {}).get(field, "")
+                if val and query_lower in val.lower():
+                    suggestions.add(val)
+    except Exception:
+        pass
+
+    suggestion_list = sorted(suggestions)[:limit]
+    return _wrap(suggestion_list)
