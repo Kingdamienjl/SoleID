@@ -205,3 +205,39 @@ async def list_price_sources() -> Dict[str, Any]:
             "available": bridge_status,
         },
     }
+
+
+@router.get("/price-info")
+async def get_price_info(
+    id: str = Query(..., description="Sneaker ID or SKU"),
+) -> Dict[str, Any]:
+    """
+    Get basic price info for a sneaker by ID or SKU.
+    This is a lightweight public endpoint (no auth required) that returns
+    resell price data from the Sneaks-API bridge or mock fallback.
+    """
+    import time
+    cache = get_cache()
+    cache_key = f"price-info:{id}"
+    cached = await cache.get(cache_key)
+    if cached:
+        return {"success": True, "data": cached, "code": 200, "timestamp": int(time.time() * 1000)}
+
+    try:
+        aggregator = get_price_aggregator()
+        snapshot = await aggregator.get_aggregated_prices(id)
+        data = {
+            "sneakerId": id,
+            "currentPrice": snapshot.lowestAsk,
+            "lowestAsk": snapshot.lowestAsk,
+            "highestBid": snapshot.highestBid,
+            "lastUpdated": snapshot.asOf or "",
+            "priceHistory": [],
+            "marketCap": None,
+            "volume24h": None,
+            "changePercent24h": 0.0,
+        }
+        await cache.set(cache_key, data, ttl_seconds=300)
+        return {"success": True, "data": data, "code": 200, "timestamp": int(time.time() * 1000)}
+    except Exception:
+        return {"success": False, "data": None, "error": "Price data unavailable", "code": 503, "timestamp": int(time.time() * 1000)}
