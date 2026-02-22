@@ -90,6 +90,10 @@ def _shoe_to_sneaker(shoe: Shoe) -> SneakerOut:
     if not name:
         name = shoe.sku
 
+    # Filter out stock photo placeholders (e.g. Pexels images from scraped data)
+    valid_images = [img for img in shoe.images if img and "pexels.com" not in img]
+    image_url = valid_images[0] if valid_images else ""
+
     return SneakerOut(
         id=numeric_id,
         name=name,
@@ -100,8 +104,8 @@ def _shoe_to_sneaker(shoe: Shoe) -> SneakerOut:
         release_date=shoe.release_date if shoe.release_date else (str(shoe.year) if shoe.year else ""),
         retail_price=shoe.retail_price,
         description=shoe.description,
-        image_url=shoe.images[0] if shoe.images else "",
-        images=shoe.images,
+        image_url=image_url,
+        images=valid_images,
         resell_prices=shoe.resell_prices,
         gender=shoe.gender,
     )
@@ -429,12 +433,28 @@ async def get_sneaker_by_id(shoe_id: str) -> dict:
             if candidate_id == target_id:
                 return _wrap(_shoe_to_sneaker(shoe).model_dump())
 
-        raise HTTPException(status_code=404, detail="Sneaker not found")
-
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Failed to fetch sneaker: {e}")
+
+    # Not found in Qdrant — try Sneaks-API trending (covers recently-loaded trending shoes
+    # whose styleID hashes to this numeric ID but aren't stored in Qdrant)
+    try:
+        bridge = get_sneaks_bridge()
+        products = await bridge.get_trending(limit=50)
+        for p in products:
+            shoe = _sneaks_product_to_shoe(p)
+            try:
+                candidate_id = int(shoe.id)
+            except (ValueError, TypeError):
+                candidate_id = int(hashlib.md5(shoe.id.encode()).hexdigest()[:15], 16)
+            if candidate_id == target_id:
+                return _wrap(_shoe_to_sneaker(shoe).model_dump())
+    except Exception:
+        pass
+
+    raise HTTPException(status_code=404, detail="Sneaker not found")
 
 
 @router.get("/brands/{brand}/sneakers")
