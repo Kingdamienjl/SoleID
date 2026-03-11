@@ -1,0 +1,31 @@
+name: Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs every 12 hours — well within Qdrant free tier's 1-week inactivity limit
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Qdrant
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "api-key: ${{ secrets.QDRANT_API_KEY }}" \
+            "${{ secrets.QDRANT_URL }}")
+          echo "Qdrant status: $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 500 ]; then
+            echo "::error::Qdrant returned $STATUS"
+            exit 1
+          fi
+
+      - name: Ping Cloud Run backend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://soleid-backend-512523849627.us-central1.run.app/health")
+          echo "Backend status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::warning::Backend returned $STATUS (non-critical)"
+          fi
