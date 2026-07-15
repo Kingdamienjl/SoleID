@@ -46,7 +46,7 @@ def ping(name: str, url: str, headers: dict) -> bool:
         return True  # Skip unconfigured services
     try:
         req = urllib.request.Request(url, headers=headers, method="GET")
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             status = resp.status
             print(f"  [{name}] {status} OK - {url[:60]}...")
             return True

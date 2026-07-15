@@ -136,3 +136,22 @@ Pipfile.lock
 .mypy_cache/
 .dmypy.json
 dmypy.json
+# Emergency local artifacts
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+models/*.gguf
+models/*.safetensors
+models/*.bin
+models/*.onnx
+*.gguf
+*.safetensors
+*.onnx
+*.log
+node_modules/
+dist/
+build/
