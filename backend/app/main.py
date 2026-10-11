@@ -4,12 +4,12 @@ import time
 import logging
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 
-from app.routes.match import router as match_router
-from app.routes.prices import router as prices_router
-from app.routes.validate import router as validate_router
-from app.routes.search import router as search_router
-from app.routes.debug import router as debug_router
-from app.routes.auth import router as auth_router
+from app.api.match import router as match_router
+from app.api.prices import router as prices_router
+from app.api.validate import router as validate_router
+from app.api.search import router as search_router
+from app.api.debug import router as debug_router
+from app.api.auth import router as auth_router
 from app.dependencies.auth import require_admin
 from app.services.auth import FirebaseUser
 from app.services.vector import get_vector_service

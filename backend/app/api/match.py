@@ -7,7 +7,7 @@ from app.services.embedding import get_embedding_service
 from app.services.vector import get_vector_service
 from app.services.validation import get_validation_service
 from app.services.embedding import preprocess_image_for_openclip
-from app.routes.search import _shoe_to_sneaker
+from app.api.search import _shoe_to_sneaker
 from PIL import Image
 import io
 
