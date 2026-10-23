@@ -10,6 +10,7 @@ from app.api.prices import router as prices_router
 from app.api.validate import router as validate_router
 from app.api.search import router as search_router
 from app.api.debug import router as debug_router
+from app.api.identify import router as identify_router
 from app.api.auth import router as auth_router
 from app.dependencies.auth import require_admin
 from app.services.auth import FirebaseUser
@@ -77,12 +78,14 @@ app.include_router(prices_router, prefix="")
 app.include_router(validate_router, prefix="")
 app.include_router(search_router, prefix="")
 app.include_router(debug_router, prefix="")
+app.include_router(identify_router, prefix="")
 app.include_router(auth_router, prefix="/api")
 app.include_router(match_router, prefix="/api")
 app.include_router(prices_router, prefix="/api")
 app.include_router(validate_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(debug_router, prefix="/api")
+app.include_router(identify_router, prefix="/api")
 
 @app.get("/api/stats")
 def stats(user: FirebaseUser = Depends(require_admin)) -> dict:

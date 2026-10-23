@@ -107,6 +107,9 @@ backend/device_logs/
 /*_log.txt
 /device_logs/
 
+# Eval dataset photos (labels CSV is committed, photos are not)
+/backend/eval/images/
+
 # AI/IDE tool docs
 .trae/
 .claude/

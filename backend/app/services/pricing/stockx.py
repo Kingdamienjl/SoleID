@@ -153,6 +153,7 @@ class StockXPriceProvider(PriceProvider):
                     count=mock.get("salesLast72Hours"),
                     lowest=highest_bid,
                     highest=lowest_ask,
+                    isMock=True,
                 )
             ],
         )

@@ -95,6 +95,7 @@ class PriceAggregator:
                 lastSale=None,
                 averagePrice=None,
                 sourceBreakdown=[],
+                dataSource="fallback",
             )
 
         return self._aggregate_snapshots(sku, snapshots)
@@ -152,6 +153,12 @@ class PriceAggregator:
         all_prices = lowest_asks + last_sales
         avg_price = mean(all_prices) if all_prices else None
 
+        # Provenance: "live" when at least one source returned real market
+        # data; "fallback" when every number came from a mock generator.
+        data_source = (
+            "live" if any(not b.isMock for b in all_breakdowns) else "fallback"
+        )
+
         return PriceSnapshot(
             sku=sku,
             asOf=datetime.now(timezone.utc).isoformat(),
@@ -161,6 +168,7 @@ class PriceAggregator:
             lastSale=last_sale,
             averagePrice=avg_price,
             sourceBreakdown=all_breakdowns,
+            dataSource=data_source,
         )
 
     async def get_price_comparison(self, sku: str) -> Dict[str, Any]:
@@ -183,6 +191,7 @@ class PriceAggregator:
                 "highestBid": snapshot.highestBid,
                 "lastSale": snapshot.lastSale,
                 "averagePrice": snapshot.averagePrice,
+                "dataSource": snapshot.dataSource,
             },
             "bySource": {},
         }

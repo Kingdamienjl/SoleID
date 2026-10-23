@@ -154,6 +154,7 @@ class GoatPriceProvider(PriceProvider):
                     count=mock.get("numberOfListings"),
                     lowest=mock.get("lowestPriceUsed"),
                     highest=mock.get("instantShipPrice"),
+                    isMock=True,
                 )
             ],
         )

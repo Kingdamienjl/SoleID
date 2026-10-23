@@ -9,6 +9,7 @@ class SourceBreakdown(BaseModel):
     lowest: Optional[float] = None
     highest: Optional[float] = None
     buyUrl: Optional[str] = None  # direct product/listing page on this source; None when data is mocked
+    isMock: bool = False  # True when this source's numbers are generated fallback data, not real market data
 
 
 class PriceSnapshot(BaseModel):
@@ -20,3 +21,4 @@ class PriceSnapshot(BaseModel):
     lastSale: Optional[float] = None
     averagePrice: Optional[float] = None
     sourceBreakdown: List[SourceBreakdown] = []
+    dataSource: str = "live"  # "live" if any source returned real data, "fallback" if everything is mock

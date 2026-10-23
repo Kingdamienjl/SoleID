@@ -143,15 +143,17 @@ class EbayPriceProvider(PriceProvider):
 
     async def _fetch_recent_sold(
         self, sku: str
-    ) -> tuple[List[float], Optional[str]]:
+    ) -> tuple[List[float], Optional[str], bool]:
         """Fetch recent sold prices for a SKU.
 
-        Returns (prices, cheapest_listing_url). The URL is the itemWebUrl of
-        the cheapest live listing, or None when the API is not configured.
+        Returns (prices, cheapest_listing_url, is_mock). The URL is the
+        itemWebUrl of the cheapest live listing, or None when the API is not
+        configured. is_mock is True when the prices are generated fallback
+        data rather than real eBay results.
         """
         if not self.is_configured():
             # Return mock data for development
-            return self._get_mock_prices(sku), None
+            return self._get_mock_prices(sku), None, True
 
         # Search for the SKU
         items = await self._search_items(f"sneaker {sku}", limit=50)
@@ -173,8 +175,8 @@ class EbayPriceProvider(PriceProvider):
                     continue
 
         if prices:
-            return prices, cheapest_url
-        return self._get_mock_prices(sku), None
+            return prices, cheapest_url, False
+        return self._get_mock_prices(sku), None, True
 
     def _get_mock_prices(self, sku: str) -> List[float]:
         """Generate mock prices for development/testing."""
@@ -190,7 +192,7 @@ class EbayPriceProvider(PriceProvider):
 
     async def get_price_snapshot(self, sku: str) -> PriceSnapshot:
         """Get aggregated price snapshot for a SKU."""
-        sold_prices, buy_url = await self._fetch_recent_sold(sku)
+        sold_prices, buy_url, is_mock = await self._fetch_recent_sold(sku)
 
         last_sale = sold_prices[-1] if sold_prices else None
         median_price = median(sold_prices) if sold_prices else None
@@ -214,6 +216,7 @@ class EbayPriceProvider(PriceProvider):
                     lowest=lowest,
                     highest=highest,
                     buyUrl=buy_url,
+                    isMock=is_mock,
                 )
             ],
         )
