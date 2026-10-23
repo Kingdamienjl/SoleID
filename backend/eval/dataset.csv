@@ -1,1 +1,21 @@
 image,style_id,brand,name,notes
+images/DD1391-100.jpg,DD1391-100,Nike,Dunk Low Retro Panda,hard pair with DD1391-600 (same shoe different colorway)
+images/DD1391-600.jpg,DD1391-600,Nike,Dunk Low University Red,hard pair with DD1391-100
+images/DZ5485-612.jpg,DZ5485-612,Nike,Air Jordan 1 High OG Lost and Found,hard pair with 555088-063 (same silhouette)
+images/555088-063.jpg,555088-063,Nike,Air Jordan 1 High OG Bred Patent,hard pair with DZ5485-612; patent leather
+images/FV5029-006.jpg,FV5029-006,Nike,Air Jordan 4 Bred Reimagined,
+images/DH6927-111.jpg,DH6927-111,Nike,Air Jordan 4 Military Black,
+images/DN3707-100.jpg,DN3707-100,Nike,Air Jordan 3 White Cement Reimagined,
+images/CT8012-001.jpg,CT8012-001,Nike,Air Jordan 11 Bred,
+images/CW2288-111.jpg,CW2288-111,Nike,Air Force 1 07 Triple White,
+images/DH8019-100.jpg,DH8019-100,Nike,Air Max 90 Triple White,
+images/DQ3989-100.jpg,DQ3989-100,Nike,Air Max 1 86 Big Bubble University Red,
+images/B75806.jpg,B75806,Adidas,Samba OG White Black,
+images/BB550WT1.jpg,BB550WT1,New Balance,550 White Green,
+images/M990GL6.jpg,M990GL6,New Balance,990v6 Grey,
+images/M2002RDA.jpg,M2002RDA,New Balance,2002R Protection Pack Rain Cloud,
+images/VN000D3HY28.jpg,VN000D3HY28,Vans,Old Skool Black White,
+images/374915-01.jpg,374915-01,Puma,Suede Classic XXI Black White,
+images/10061.jpg,10061,Timberland,6 Inch Premium Boot Wheat,boot not sneaker silhouette
+images/11822006.jpg,11822006,Dr. Martens,1460 Smooth Black,boot not sneaker silhouette
+images/10001-100.jpg,10001-100,Crocs,Classic Clog White,clog - taxonomy edge case
