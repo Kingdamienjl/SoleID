@@ -97,6 +97,16 @@ nul
 screenshots/
 backend/device_logs/
 
+# Root-level device/debug dumps (added 2026-10-23 cleanup)
+/fold_*.png
+/room_*.png
+/screenshot*.png
+/v1*_*.png
+/v19*.png
+/*logcat*.txt
+/*_log.txt
+/device_logs/
+
 # AI/IDE tool docs
 .trae/
 .claude/

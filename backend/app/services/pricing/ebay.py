@@ -1,1 +1,242 @@
-IiIiCmVCYXkgQnJvd3NlIEFQSSBpbnRlZ3JhdGlvbiBmb3Igc25lYWtlciBwcmljaW5nLgoKVXNlcyB0aGUgZUJheSBCcm93c2UgQVBJIHRvIHNlYXJjaCBmb3IgY29tcGxldGVkL3NvbGQgbGlzdGluZ3MKYW5kIGFnZ3JlZ2F0ZSBwcmljaW5nIGRhdGEgZm9yIHNuZWFrZXIgU0tVcy4KCkFQSSBEb2N1bWVudGF0aW9uOiBodHRwczovL2RldmVsb3Blci5lYmF5LmNvbS9hcGktZG9jcy9idXkvYnJvd3NlL292ZXJ2aWV3Lmh0bWwKIiIiCmZyb20gX19mdXR1cmVfXyBpbXBvcnQgYW5ub3RhdGlvbnMKCmltcG9ydCBvcwppbXBvcnQgYmFzZTY0CmltcG9ydCBhc3luY2lvCmZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGV0aW1lLCB0aW1lem9uZQpmcm9tIHN0YXRpc3RpY3MgaW1wb3J0IG1lZGlhbiwgbWVhbgpmcm9tIHR5cGluZyBpbXBvcnQgTGlzdCwgT3B0aW9uYWwsIERpY3QsIEFueQoKaW1wb3J0IGh0dHB4CmZyb20gYXBwLnNjaGVtYXMucHJpY2UgaW1wb3J0IFByaWNlU25hcHNob3QsIFNvdXJjZUJyZWFrZG93bgpmcm9tIGFwcC5zZXJ2aWNlcy5wcmljaW5nLmJhc2UgaW1wb3J0IFByaWNlUHJvdmlkZXIKCgpjbGFzcyBFYmF5UHJpY2VQcm92aWRlcihQcmljZVByb3ZpZGVyKToKICAgICIiImVCYXkgcHJpY2luZyBwcm92aWRlciB1c2luZyB0aGUgQnJvd3NlIEFQSS4iIiIKCiAgICAjIGVCYXkgQVBJIGVuZHBvaW50cwogICAgU0FOREJPWF9BVVRIX1VSTCA9ICJodHRwczovL2FwaS5zYW5kYm94LmViYXkuY29tL2lkZW50aXR5L3YxL29hdXRoMi90b2tlbiIKICAgIFBST0RVQ1RJT05fQVVUSF9VUkwgPSAiaHR0cHM6Ly9hcGkuZWJheS5jb20vaWRlbnRpdHkvdjEvb2F1dGgyL3Rva2VuIgogICAgU0FOREJPWF9CUk9XU0VfVVJMID0gImh0dHBzOi8vYXBpLnNhbmRib3guZWJheS5jb20vYnV5L2Jyb3dzZS92MSIKICAgIFBST0RVQ1RJT05fQlJPV1NFX1VSTCA9ICJodHRwczovL2FwaS5lYmF5LmNvbS9idXkvYnJvd3NlL3YxIgoKICAgIGRlZiBfX2luaXRfXyhzZWxmKSAtPiBOb25lOgogICAgICAgIHNlbGYuYXBwX2lkID0gb3MuZ2V0ZW52KCJFQkFZX0FQUF9JRCIsICIiKQogICAgICAgIHNlbGYuY2VydF9pZCA9IG9zLmdldGVudigiRUJBWV9DRVJUX0lEIiwgIiIpCiAgICAgICAgc2VsZi5zYW5kYm94ID0gb3MuZ2V0ZW52KCJFQkFZX1NBTkRCT1giLCAiZmFsc2UiKS5sb3dlcigpID09ICJ0cnVlIgogICAgICAgIHNlbGYuY2xpZW50ID0gaHR0cHguQXN5bmNDbGllbnQodGltZW91dD0zMCkKICAgICAgICBzZWxmLl9hY2Nlc3NfdG9rZW46IE9wdGlvbmFsW3N0cl0gPSBOb25lCiAgICAgICAgc2VsZi5fdG9rZW5fZXhwaXJ5OiBPcHRpb25hbFtkYXRldGltZV0gPSBOb25lCgogICAgQHByb3BlcnR5CiAgICBkZWYgYXV0aF91cmwoc2VsZikgLT4gc3RyOgogICAgICAgIHJldHVybiBzZWxmLlNBTkRCT1hfQVVUSF9VUkwgaWYgc2VsZi5zYW5kYm94IGVsc2Ugc2VsZi5QUk9EVUNUSU9OX0FVVEhfVVJMCgogICAgQHByb3BlcnR5CiAgICBkZWYgYnJvd3NlX3VybChzZWxmKSAtPiBzdHI6CiAgICAgICAgcmV0dXJuIHNlbGYuU0FOREJPWF9CUk9XU0VfVVJMIGlmIHNlbGYuc2FuZGJveCBlbHNlIHNlbGYuUFJPRFVDVElPTl9CUk9XU0VfVVJMCgogICAgZGVmIGlzX2NvbmZpZ3VyZWQoc2VsZikgLT4gYm9vbDoKICAgICAgICAiIiJDaGVjayBpZiBlQmF5IEFQSSBjcmVkZW50aWFscyBhcmUgY29uZmlndXJlZC4iIiIKICAgICAgICByZXR1cm4gYm9vbChzZWxmLmFwcF9pZCBhbmQgc2VsZi5jZXJ0X2lkKQoKICAgIGFzeW5jIGRlZiBfZ2V0X2FjY2Vzc190b2tlbihzZWxmKSAtPiBPcHRpb25hbFtzdHJdOgogICAgICAgICIiIkdldCBPQXV0aCBhY2Nlc3MgdG9rZW4gdXNpbmcgQ2xpZW50IENyZWRlbnRpYWxzIGdyYW50LiIiIgogICAgICAgIGlmIG5vdCBzZWxmLmlzX2NvbmZpZ3VyZWQoKToKICAgICAgICAgICAgcmV0dXJuIE5vbmUKCiAgICAgICAgIyBDaGVjayBpZiB3ZSBoYXZlIGEgdmFsaWQgY2FjaGVkIHRva2VuCiAgICAgICAgaWYgc2VsZi5fYWNjZXNzX3Rva2VuIGFuZCBzZWxmLl90b2tlbl9leHBpcnk6CiAgICAgICAgICAgIGlmIGRhdGV0aW1lLm5vdyh0aW1lem9uZS51dGMpIDwgc2VsZi5fdG9rZW5fZXhwaXJ5OgogICAgICAgICAgICAgICAgcmV0dXJuIHNlbGYuX2FjY2Vzc190b2tlbgoKICAgICAgICAjIFJlcXVlc3QgbmV3IHRva2VuCiAgICAgICAgY3JlZGVudGlhbHMgPSBiYXNlNjQuYjY0ZW5jb2RlKAogICAgICAgICAgICBmIntzZWxmLmFwcF9pZH06e3NlbGYuY2VydF9pZH0iLmVuY29kZSgpCiAgICAgICAgKS5kZWNvZGUoKQoKICAgICAgICBoZWFkZXJzID0gewogICAgICAgICAgICAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZCIsCiAgICAgICAgICAgICJBdXRob3JpemF0aW9uIjogZiJCYXNpYyB7Y3JlZGVudGlhbHN9IiwKICAgICAgICB9CgogICAgICAgIGRhdGEgPSB7CiAgICAgICAgICAgICJncmFudF90eXBlIjogImNsaWVudF9jcmVkZW50aWFscyIsCiAgICAgICAgICAgICJzY29wZSI6ICJodHRwczovL2FwaS5lYmF5LmNvbS9vYXV0aC9hcGlfc2NvcGUiLAogICAgICAgIH0KCiAgICAgICAgdHJ5OgogICAgICAgICAgICByZXNwb25zZSA9IGF3YWl0IHNlbGYuY2xpZW50LnBvc3QoCiAgICAgICAgICAgICAgICBzZWxmLmF1dGhfdXJsLAogICAgICAgICAgICAgICAgaGVhZGVycz1oZWFkZXJzLAogICAgICAgICAgICAgICAgZGF0YT1kYXRhLAogICAgICAgICAgICApCgogICAgICAgICAgICBpZiByZXNwb25zZS5zdGF0dXNfY29kZSA9PSAyMDA6CiAgICAgICAgICAgICAgICB0b2tlbl9kYXRhID0gcmVzcG9uc2UuanNvbigpCiAgICAgICAgICAgICAgICBzZWxmLl9hY2Nlc3NfdG9rZW4gPSB0b2tlbl9kYXRhLmdldCgiYWNjZXNzX3Rva2VuIikKICAgICAgICAgICAgICAgIGV4cGlyZXNfaW4gPSB0b2tlbl9kYXRhLmdldCgiZXhwaXJlc19pbiIsIDcyMDApCiAgICAgICAgICAgICAgICBzZWxmLl90b2tlbl9leHBpcnkgPSBkYXRldGltZS5ub3codGltZXpvbmUudXRjKS5yZXBsYWNlKAogICAgICAgICAgICAgICAgICAgIHNlY29uZD1kYXRldGltZS5ub3codGltZXpvbmUudXRjKS5zZWNvbmQgKyBleHBpcmVzX2luIC0gNjAKICAgICAgICAgICAgICAgICkKICAgICAgICAgICAgICAgIHJldHVybiBzZWxmLl9hY2Nlc3NfdG9rZW4KICAgICAgICAgICAgZWxzZToKICAgICAgICAgICAgICAgIHByaW50KGYiZUJheSBhdXRoIGZhaWxlZDoge3Jlc3BvbnNlLnN0YXR1c19jb2RlfSAtIHtyZXNwb25zZS50ZXh0fSIpCiAgICAgICAgICAgICAgICByZXR1cm4gTm9uZQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICAgICAgcHJpbnQoZiJlQmF5IGF1dGggZXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHJldHVybiBOb25lCgogICAgYXN5bmMgZGVmIF9zZWFyY2hfaXRlbXMoCiAgICAgICAgc2VsZiwKICAgICAgICBxdWVyeTogc3RyLAogICAgICAgIGxpbWl0OiBpbnQgPSA1MCwKICAgICAgICBmaWx0ZXJfc29sZDogYm9vbCA9IFRydWUKICAgICkgLT4gTGlzdFtEaWN0W3N0ciwgQW55XV06CiAgICAgICAgIiIiU2VhcmNoIGZvciBpdGVtcyBvbiBlQmF5LiIiIgogICAgICAgIHRva2VuID0gYXdhaXQgc2VsZi5fZ2V0X2FjY2Vzc190b2tlbigpCiAgICAgICAgaWYgbm90IHRva2VuOgogICAgICAgICAgICByZXR1cm4gW10KCiAgICAgICAgaGVhZGVycyA9IHsKICAgICAgICAgICAgIkF1dGhvcml6YXRpb24iOiBmIkJlYXJlciB7dG9rZW59IiwKICAgICAgICAgICAgIlgtRUJBWS1DLU1BUktFVFBMQUNFLUlEIjogIkVCQVlfVVMiLAogICAgICAgICAgICAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL2pzb24iLAogICAgICAgIH0KCiAgICAgICAgIyBCdWlsZCBzZWFyY2ggcXVlcnkgZm9yIHNuZWFrZXJzCiAgICAgICAgcGFyYW1zID0gewogICAgICAgICAgICAicSI6IHF1ZXJ5LAogICAgICAgICAgICAibGltaXQiOiBzdHIobGltaXQpLAogICAgICAgICAgICAiY2F0ZWdvcnlfaWRzIjogIjE1NzA5IiwgICMgTWVuJ3MgQXRobGV0aWMgU2hvZXMgY2F0ZWdvcnkKICAgICAgICB9CgogICAgICAgICMgQWRkIGZpbHRlciBmb3Igc29sZCBpdGVtcyBpZiBhdmFpbGFibGUgKHJlcXVpcmVzIHNwZWNpZmljIEFQSSBhY2Nlc3MpCiAgICAgICAgaWYgZmlsdGVyX3NvbGQ6CiAgICAgICAgICAgIHBhcmFtc1siZmlsdGVyIl0gPSAiY29uZGl0aW9uSWRzOnsxMDAwfDE1MDB8MzAwMH0iICAjIE5ldywgTmV3IHdpdGggZGVmZWN0cywgUHJlLW93bmVkCgogICAgICAgIHRyeToKICAgICAgICAgICAgcmVzcG9uc2UgPSBhd2FpdCBzZWxmLmNsaWVudC5nZXQoCiAgICAgICAgICAgICAgICBmIntzZWxmLmJyb3dzZV91cmx9L2l0ZW1fc3VtbWFyeS9zZWFyY2giLAogICAgICAgICAgICAgICAgaGVhZGVycz1oZWFkZXJzLAogICAgICAgICAgICAgICAgcGFyYW1zPXBhcmFtcywKICAgICAgICAgICAgKQoKICAgICAgICAgICAgaWYgcmVzcG9uc2Uuc3RhdHVzX2NvZGUgPT0gMjAwOgogICAgICAgICAgICAgICAgZGF0YSA9IHJlc3BvbnNlLmpzb24oKQogICAgICAgICAgICAgICAgcmV0dXJuIGRhdGEuZ2V0KCJpdGVtU3VtbWFyaWVzIiwgW10pCiAgICAgICAgICAgIGVsc2U6CiAgICAgICAgICAgICAgICBwcmludChmImVCYXkgc2VhcmNoIGZhaWxlZDoge3Jlc3BvbnNlLnN0YXR1c19jb2RlfSAtIHtyZXNwb25zZS50ZXh0fSIpCiAgICAgICAgICAgICAgICByZXR1cm4gW10KICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgICAgIHByaW50KGYiZUJheSBzZWFyY2ggZXJyb3I6IHtlfSIpCiAgICAgICAgICAgIHJldHVybiBbXQoKICAgIGFzeW5jIGRlZiBfZmV0Y2hfcmVjZW50X3NvbGQoCiAgICAgICAgc2VsZiwgc2t1OiBzdHIKICAgICkgLT4gdHVwbGVbTGlzdFtmbG9hdF0sIE9wdGlvbmFsW3N0cl1dOgogICAgICAgICIiIkZldGNoIHJlY2VudCBzb2xkIHByaWNlcyBmb3IgYSBTS1UuCgogICAgICAgIFJldHVybnMgKHByaWNlcywgY2hlYXBlc3RfbGlzdGluZ191cmwpLiBUaGUgVVJMIGlzIHRoZSBpdGVtV2ViVXJsIG9mCiAgICAgICAgdGhlIGNoZWFwZXN0IGxpdmUgbGlzdGluZywgb3IgTm9uZSB3aGVuIHRoZSBBUEkgaXMgbm90IGNvbmZpZ3VyZWQuCiAgICAgICAgIiIiCiAgICAgICAgaWYgbm90IHNlbGYuaXNfY29uZmlndXJlZCgpOgogICAgICAgICAgICAjIFJldHVybiBtb2NrIGRhdGEgZm9yIGRldmVsb3BtZW50CiAgICAgICAgICAgIHJldHVybiBzZWxmLl9nZXRfbW9ja19wcmljZXMoc2t1KSwgTm9uZQoKICAgICAgICAjIFNlYXJjaCBmb3IgdGhlIFNLVQogICAgICAgIGl0ZW1zID0gYXdhaXQgc2VsZi5fc2VhcmNoX2l0ZW1zKGYic25lYWtlciB7c2t1fSIsIGxpbWl0PTUwKQoKICAgICAgICBwcmljZXMgPSBbXQogICAgICAgIGNoZWFwZXN0X3VybDogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgICAgICBjaGVhcGVzdF9wcmljZTogT3B0aW9uYWxbZmxvYXRdID0gTm9uZQogICAgICAgIGZvciBpdGVtIGluIGl0ZW1zOgogICAgICAgICAgICBwcmljZV9pbmZvID0gaXRlbS5nZXQoInByaWNlIiwge30pCiAgICAgICAgICAgIGlmIHByaWNlX2luZm86CiAgICAgICAgICAgICAgICB0cnk6CiAgICAgICAgICAgICAgICAgICAgdmFsdWUgPSBmbG9hdChwcmljZV9pbmZvLmdldCgidmFsdWUiLCAwKSkKICAgICAgICAgICAgICAgICAgICBpZiB2YWx1ZSA+IDA6CiAgICAgICAgICAgICAgICAgICAgICAgIHByaWNlcy5hcHBlbmQodmFsdWUpCiAgICAgICAgICAgICAgICAgICAgICAgIGlmIGNoZWFwZXN0X3ByaWNlIGlzIE5vbmUgb3IgdmFsdWUgPCBjaGVhcGVzdF9wcmljZToKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNoZWFwZXN0X3ByaWNlID0gdmFsdWUKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNoZWFwZXN0X3VybCA9IGl0ZW0uZ2V0KCJpdGVtV2ViVXJsIikKICAgICAgICAgICAgICAgIGV4Y2VwdCAoVmFsdWVFcnJvciwgVHlwZUVycm9yKToKICAgICAgICAgICAgICAgICAgICBjb250aW51ZQoKICAgICAgICBpZiBwcmljZXM6CiAgICAgICAgICAgIHJldHVybiBwcmljZXMsIGNoZWFwZXN0X3VybAogICAgICAgIHJldHVybiBzZWxmLl9nZXRfbW9ja19wcmljZXMoc2t1KSwgTm9uZQoKICAgIGRlZiBfZ2V0X21vY2tfcHJpY2VzKHNlbGYsIHNrdTogc3RyKSAtPiBMaXN0W2Zsb2F0XToKICAgICAgICAiIiJHZW5lcmF0ZSBtb2NrIHByaWNlcyBmb3IgZGV2ZWxvcG1lbnQvdGVzdGluZy4iIiIKICAgICAgICAjIEdlbmVyYXRlIHNlbWktcmVhbGlzdGljIG1vY2sgcHJpY2VzIGJhc2VkIG9uIFNLVSBoYXNoCiAgICAgICAgYmFzZV9wcmljZSA9IDE1MCArIChoYXNoKHNrdSkgJSAyMDApCiAgICAgICAgcmV0dXJuIFsKICAgICAgICAgICAgYmFzZV9wcmljZSAtIDEwLAogICAgICAgICAgICBiYXNlX3ByaWNlLAogICAgICAgICAgICBiYXNlX3ByaWNlICsgMTUsCiAgICAgICAgICAgIGJhc2VfcHJpY2UgLSA1LAogICAgICAgICAgICBiYXNlX3ByaWNlICsgMjAsCiAgICAgICAgXQoKICAgIGFzeW5jIGRlZiBnZXRfcHJpY2Vfc25hcHNob3Qoc2VsZiwgc2t1OiBzdHIpIC0+IFByaWNlU25hcHNob3Q6CiAgICAgICAgIiIiR2V0IGFnZ3JlZ2F0ZWQgcHJpY2Ugc25hcHNob3QgZm9yIGEgU0tVLiIiIgogICAgICAgIHNvbGRfcHJpY2VzLCBidXlfdXJsID0gYXdhaXQgc2VsZi5fZmV0Y2hfcmVjZW50X3NvbGQoc2t1KQoKICAgICAgICBsYXN0X3NhbGUgPSBzb2xkX3ByaWNlc1stMV0gaWYgc29sZF9wcmljZXMgZWxzZSBOb25lCiAgICAgICAgbWVkaWFuX3ByaWNlID0gbWVkaWFuKHNvbGRfcHJpY2VzKSBpZiBzb2xkX3ByaWNlcyBlbHNlIE5vbmUKICAgICAgICBhdmdfcHJpY2UgPSBtZWFuKHNvbGRfcHJpY2VzKSBpZiBzb2xkX3ByaWNlcyBlbHNlIE5vbmUKICAgICAgICBsb3dlc3QgPSBtaW4oc29sZF9wcmljZXMpIGlmIHNvbGRfcHJpY2VzIGVsc2UgTm9uZQogICAgICAgIGhpZ2hlc3QgPSBtYXgoc29sZF9wcmljZXMpIGlmIHNvbGRfcHJpY2VzIGVsc2UgTm9uZQoKICAgICAgICBzbmFwc2hvdCA9IFByaWNlU25hcHNob3QoCiAgICAgICAgICAgIHNrdT1za3UsCiAgICAgICAgICAgIGFzT2Y9ZGF0ZXRpbWUubm93KHRpbWV6b25lLnV0YykuaXNvZm9ybWF0KCksCiAgICAgICAgICAgIHJldGFpbD1Ob25lLAogICAgICAgICAgICBsb3dlc3RBc2s9bG93ZXN0LAogICAgICAgICAgICBoaWdoZXN0QmlkPWhpZ2hlc3QsCiAgICAgICAgICAgIGxhc3RTYWxlPWxhc3Rfc2FsZSwKICAgICAgICAgICAgYXZlcmFnZVByaWNlPWF2Z19wcmljZSwKICAgICAgICAgICAgc291cmNlQnJlYWtkb3duPVsKICAgICAgICAgICAgICAgIFNvdXJjZUJyZWFrZG93bigKICAgICAgICAgICAgICAgICAgICBzb3VyY2U9ImViYXkiLAogICAgICAgICAgICAgICAgICAgIG1lZGlhbj1tZWRpYW5fcHJpY2UsCiAgICAgICAgICAgICAgICAgICAgY291bnQ9bGVuKHNvbGRfcHJpY2VzKSwKICAgICAgICAgICAgICAgICAgICBsb3dlc3Q9bG93ZXN0LAogICAgICAgICAgICAgICAgICAgIGhpZ2hlc3Q9aGlnaGVzdCwKICAgICAgICAgICAgICAgICAgICBidXlVcmw9YnV5X3VybCwKICAgICAgICAgICAgICAgICkKICAgICAgICAgICAgXSwKICAgICAgICApCiAgICAgICAgcmV0dXJuIHNuYXBzaG90CgogICAgYXN5bmMgZGVmIHNlYXJjaF9zbmVha2VycygKICAgICAgICBzZWxmLAogICAgICAgIHF1ZXJ5OiBzdHIsCiAgICAgICAgbGltaXQ6IGludCA9IDIwCiAgICApIC0+IExpc3RbRGljdFtzdHIsIEFueV1dOgogICAgICAgICIiIlNlYXJjaCBmb3Igc25lYWtlcnMgYnkgbmFtZS9icmFuZC9tb2RlbC4iIiIKICAgICAgICBpdGVtcyA9IGF3YWl0IHNlbGYuX3NlYXJjaF9pdGVtcyhmInNuZWFrZXIge3F1ZXJ5fSIsIGxpbWl0PWxpbWl0KQoKICAgICAgICByZXN1bHRzID0gW10KICAgICAgICBmb3IgaXRlbSBpbiBpdGVtczoKICAgICAgICAgICAgcmVzdWx0cy5hcHBlbmQoewogICAgICAgICAgICAgICAgInRpdGxlIjogaXRlbS5nZXQoInRpdGxlIiwgIiIpLAogICAgICAgICAgICAgICAgInByaWNlIjogaXRlbS5nZXQoInByaWNlIiwge30pLmdldCgidmFsdWUiKSwKICAgICAgICAgICAgICAgICJjdXJyZW5jeSI6IGl0ZW0uZ2V0KCJwcmljZSIsIHt9KS5nZXQoImN1cnJlbmN5IiwgIlVTRCIpLAogICAgICAgICAgICAgICAgImNvbmRpdGlvbiI6IGl0ZW0uZ2V0KCJjb25kaXRpb24iLCAiIiksCiAgICAgICAgICAgICAgICAiaW1hZ2VfdXJsIjogaXRlbS5nZXQoImltYWdlIiwge30pLmdldCgiaW1hZ2VVcmwiLCAiIiksCiAgICAgICAgICAgICAgICAiaXRlbV91cmwiOiBpdGVtLmdldCgiaXRlbVdlYlVybCIsICIiKSwKICAgICAgICAgICAgICAgICJzZWxsZXIiOiBpdGVtLmdldCgic2VsbGVyIiwge30pLmdldCgidXNlcm5hbWUiLCAiIiksCiAgICAgICAgICAgIH0pCgogICAgICAgIHJldHVybiByZXN1bHRzCg==
+"""
+eBay Browse API integration for sneaker pricing.
+
+Uses the eBay Browse API to search for completed/sold listings
+and aggregate pricing data for sneaker SKUs.
+
+API Documentation: https://developer.ebay.com/api-docs/buy/browse/overview.html
+"""
+from __future__ import annotations
+
+import os
+import base64
+import asyncio
+from datetime import datetime, timezone
+from statistics import median, mean
+from typing import List, Optional, Dict, Any
+
+import httpx
+from app.schemas.price import PriceSnapshot, SourceBreakdown
+from app.services.pricing.base import PriceProvider
+
+
+class EbayPriceProvider(PriceProvider):
+    """eBay pricing provider using the Browse API."""
+
+    # eBay API endpoints
+    SANDBOX_AUTH_URL = "https://api.sandbox.ebay.com/identity/v1/oauth2/token"
+    PRODUCTION_AUTH_URL = "https://api.ebay.com/identity/v1/oauth2/token"
+    SANDBOX_BROWSE_URL = "https://api.sandbox.ebay.com/buy/browse/v1"
+    PRODUCTION_BROWSE_URL = "https://api.ebay.com/buy/browse/v1"
+
+    def __init__(self) -> None:
+        self.app_id = os.getenv("EBAY_APP_ID", "")
+        self.cert_id = os.getenv("EBAY_CERT_ID", "")
+        self.sandbox = os.getenv("EBAY_SANDBOX", "false").lower() == "true"
+        self.client = httpx.AsyncClient(timeout=30)
+        self._access_token: Optional[str] = None
+        self._token_expiry: Optional[datetime] = None
+
+    @property
+    def auth_url(self) -> str:
+        return self.SANDBOX_AUTH_URL if self.sandbox else self.PRODUCTION_AUTH_URL
+
+    @property
+    def browse_url(self) -> str:
+        return self.SANDBOX_BROWSE_URL if self.sandbox else self.PRODUCTION_BROWSE_URL
+
+    def is_configured(self) -> bool:
+        """Check if eBay API credentials are configured."""
+        return bool(self.app_id and self.cert_id)
+
+    async def _get_access_token(self) -> Optional[str]:
+        """Get OAuth access token using Client Credentials grant."""
+        if not self.is_configured():
+            return None
+
+        # Check if we have a valid cached token
+        if self._access_token and self._token_expiry:
+            if datetime.now(timezone.utc) < self._token_expiry:
+                return self._access_token
+
+        # Request new token
+        credentials = base64.b64encode(
+            f"{self.app_id}:{self.cert_id}".encode()
+        ).decode()
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {credentials}",
+        }
+
+        data = {
+            "grant_type": "client_credentials",
+            "scope": "https://api.ebay.com/oauth/api_scope",
+        }
+
+        try:
+            response = await self.client.post(
+                self.auth_url,
+                headers=headers,
+                data=data,
+            )
+
+            if response.status_code == 200:
+                token_data = response.json()
+                self._access_token = token_data.get("access_token")
+                expires_in = token_data.get("expires_in", 7200)
+                self._token_expiry = datetime.now(timezone.utc).replace(
+                    second=datetime.now(timezone.utc).second + expires_in - 60
+                )
+                return self._access_token
+            else:
+                print(f"eBay auth failed: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            print(f"eBay auth error: {e}")
+            return None
+
+    async def _search_items(
+        self,
+        query: str,
+        limit: int = 50,
+        filter_sold: bool = True
+    ) -> List[Dict[str, Any]]:
+        """Search for items on eBay."""
+        token = await self._get_access_token()
+        if not token:
+            return []
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+            "Content-Type": "application/json",
+        }
+
+        # Build search query for sneakers
+        params = {
+            "q": query,
+            "limit": str(limit),
+            "category_ids": "15709",  # Men's Athletic Shoes category
+        }
+
+        # Add filter for sold items if available (requires specific API access)
+        if filter_sold:
+            params["filter"] = "conditionIds:{1000|1500|3000}"  # New, New with defects, Pre-owned
+
+        try:
+            response = await self.client.get(
+                f"{self.browse_url}/item_summary/search",
+                headers=headers,
+                params=params,
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("itemSummaries", [])
+            else:
+                print(f"eBay search failed: {response.status_code} - {response.text}")
+                return []
+        except Exception as e:
+            print(f"eBay search error: {e}")
+            return []
+
+    async def _fetch_recent_sold(
+        self, sku: str
+    ) -> tuple[List[float], Optional[str]]:
+        """Fetch recent sold prices for a SKU.
+
+        Returns (prices, cheapest_listing_url). The URL is the itemWebUrl of
+        the cheapest live listing, or None when the API is not configured.
+        """
+        if not self.is_configured():
+            # Return mock data for development
+            return self._get_mock_prices(sku), None
+
+        # Search for the SKU
+        items = await self._search_items(f"sneaker {sku}", limit=50)
+
+        prices = []
+        cheapest_url: Optional[str] = None
+        cheapest_price: Optional[float] = None
+        for item in items:
+            price_info = item.get("price", {})
+            if price_info:
+                try:
+                    value = float(price_info.get("value", 0))
+                    if value > 0:
+                        prices.append(value)
+                        if cheapest_price is None or value < cheapest_price:
+                            cheapest_price = value
+                            cheapest_url = item.get("itemWebUrl")
+                except (ValueError, TypeError):
+                    continue
+
+        if prices:
+            return prices, cheapest_url
+        return self._get_mock_prices(sku), None
+
+    def _get_mock_prices(self, sku: str) -> List[float]:
+        """Generate mock prices for development/testing."""
+        # Generate semi-realistic mock prices based on SKU hash
+        base_price = 150 + (hash(sku) % 200)
+        return [
+            base_price - 10,
+            base_price,
+            base_price + 15,
+            base_price - 5,
+            base_price + 20,
+        ]
+
+    async def get_price_snapshot(self, sku: str) -> PriceSnapshot:
+        """Get aggregated price snapshot for a SKU."""
+        sold_prices, buy_url = await self._fetch_recent_sold(sku)
+
+        last_sale = sold_prices[-1] if sold_prices else None
+        median_price = median(sold_prices) if sold_prices else None
+        avg_price = mean(sold_prices) if sold_prices else None
+        lowest = min(sold_prices) if sold_prices else None
+        highest = max(sold_prices) if sold_prices else None
+
+        snapshot = PriceSnapshot(
+            sku=sku,
+            asOf=datetime.now(timezone.utc).isoformat(),
+            retail=None,
+            lowestAsk=lowest,
+            highestBid=highest,
+            lastSale=last_sale,
+            averagePrice=avg_price,
+            sourceBreakdown=[
+                SourceBreakdown(
+                    source="ebay",
+                    median=median_price,
+                    count=len(sold_prices),
+                    lowest=lowest,
+                    highest=highest,
+                    buyUrl=buy_url,
+                )
+            ],
+        )
+        return snapshot
+
+    async def search_sneakers(
+        self,
+        query: str,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """Search for sneakers by name/brand/model."""
+        items = await self._search_items(f"sneaker {query}", limit=limit)
+
+        results = []
+        for item in items:
+            results.append({
+                "title": item.get("title", ""),
+                "price": item.get("price", {}).get("value"),
+                "currency": item.get("price", {}).get("currency", "USD"),
+                "condition": item.get("condition", ""),
+                "image_url": item.get("image", {}).get("imageUrl", ""),
+                "item_url": item.get("itemWebUrl", ""),
+                "seller": item.get("seller", {}).get("username", ""),
+            })
+
+        return results

@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import os
 import time
 import logging
 from starlette_exporter import PrometheusMiddleware, handle_metrics
@@ -16,9 +17,19 @@ from app.services.vector import get_vector_service
 
 app = FastAPI(title="SoleID Backend", version="0.1.0")
 
+# Browser origins allowed to call this API. Native app clients are not
+# subject to CORS; keep this list tight. Override with CORS_ALLOW_ORIGINS
+# (comma-separated) in the environment when needed.
+_cors_origins = [
+    o.strip()
+    for o in os.getenv(
+        "CORS_ALLOW_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"
+    ).split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

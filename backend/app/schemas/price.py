@@ -1,1 +1,22 @@
-ZnJvbSBweWRhbnRpYyBpbXBvcnQgQmFzZU1vZGVsCmZyb20gdHlwaW5nIGltcG9ydCBMaXN0LCBPcHRpb25hbAoKCmNsYXNzIFNvdXJjZUJyZWFrZG93bihCYXNlTW9kZWwpOgogICAgc291cmNlOiBzdHIKICAgIG1lZGlhbjogT3B0aW9uYWxbZmxvYXRdID0gTm9uZQogICAgY291bnQ6IE9wdGlvbmFsW2ludF0gPSBOb25lCiAgICBsb3dlc3Q6IE9wdGlvbmFsW2Zsb2F0XSA9IE5vbmUKICAgIGhpZ2hlc3Q6IE9wdGlvbmFsW2Zsb2F0XSA9IE5vbmUKICAgIGJ1eVVybDogT3B0aW9uYWxbc3RyXSA9IE5vbmUgICMgZGlyZWN0IHByb2R1Y3QvbGlzdGluZyBwYWdlIG9uIHRoaXMgc291cmNlOyBOb25lIHdoZW4gZGF0YSBpcyBtb2NrZWQKCgpjbGFzcyBQcmljZVNuYXBzaG90KEJhc2VNb2RlbCk6CiAgICBza3U6IHN0cgogICAgYXNPZjogc3RyCiAgICByZXRhaWw6IE9wdGlvbmFsW2Zsb2F0XSA9IE5vbmUKICAgIGxvd2VzdEFzazogT3B0aW9uYWxbZmxvYXRdID0gTm9uZQogICAgaGlnaGVzdEJpZDogT3B0aW9uYWxbZmxvYXRdID0gTm9uZQogICAgbGFzdFNhbGU6IE9wdGlvbmFsW2Zsb2F0XSA9IE5vbmUKICAgIGF2ZXJhZ2VQcmljZTogT3B0aW9uYWxbZmxvYXRdID0gTm9uZQogICAgc291cmNlQnJlYWtkb3duOiBMaXN0W1NvdXJjZUJyZWFrZG93bl0gPSBbXQo=
+from pydantic import BaseModel
+from typing import List, Optional
+
+
+class SourceBreakdown(BaseModel):
+    source: str
+    median: Optional[float] = None
+    count: Optional[int] = None
+    lowest: Optional[float] = None
+    highest: Optional[float] = None
+    buyUrl: Optional[str] = None  # direct product/listing page on this source; None when data is mocked
+
+
+class PriceSnapshot(BaseModel):
+    sku: str
+    asOf: str
+    retail: Optional[float] = None
+    lowestAsk: Optional[float] = None
+    highestBid: Optional[float] = None
+    lastSale: Optional[float] = None
+    averagePrice: Optional[float] = None
+    sourceBreakdown: List[SourceBreakdown] = []

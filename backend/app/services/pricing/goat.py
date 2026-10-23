@@ -1,1 +1,188 @@
-IiIiCkdPQVQgcHJpY2luZyB2aWEgU25lYWtzLUFQSSBicmlkZ2UuCgpVc2VzIHRoZSBzbmVha3Mtc2VydmljZSBOb2RlLmpzIG1pY3Jvc2VydmljZSB0byBnZXQgcmVhbC10aW1lCkdPQVQgcHJpY2luZyBkYXRhLgoKRmFsbHMgYmFjayB0byBtb2NrIGRhdGEgd2hlbiB0aGUgc25lYWtzLXNlcnZpY2UgaXMgdW5hdmFpbGFibGUuCiIiIgpmcm9tIF9fZnV0dXJlX18gaW1wb3J0IGFubm90YXRpb25zCgppbXBvcnQgbG9nZ2luZwpmcm9tIGRhdGV0aW1lIGltcG9ydCBkYXRldGltZSwgdGltZXpvbmUKZnJvbSBzdGF0aXN0aWNzIGltcG9ydCBtZWFuCmZyb20gdHlwaW5nIGltcG9ydCBPcHRpb25hbCwgRGljdCwgQW55Cgpmcm9tIGFwcC5zY2hlbWFzLnByaWNlIGltcG9ydCBQcmljZVNuYXBzaG90LCBTb3VyY2VCcmVha2Rvd24KZnJvbSBhcHAuc2VydmljZXMucHJpY2luZy5iYXNlIGltcG9ydCBQcmljZVByb3ZpZGVyCmZyb20gYXBwLnNlcnZpY2VzLnByaWNpbmcuc25lYWtzX2JyaWRnZSBpbXBvcnQgU25lYWtzQnJpZGdlLCBnZXRfc25lYWtzX2JyaWRnZQoKbG9nZ2VyID0gbG9nZ2luZy5nZXRMb2dnZXIoInNvbGVpZC5wcmljaW5nLmdvYXQiKQoKCmNsYXNzIEdvYXRQcmljZVByb3ZpZGVyKFByaWNlUHJvdmlkZXIpOgogICAgIiIiR09BVCBwcmljaW5nIHByb3ZpZGVyIGJhY2tlZCBieSBTbmVha3MtQVBJIGJyaWRnZS4iIiIKCiAgICBkZWYgX19pbml0X18oc2VsZiwgYnJpZGdlOiBPcHRpb25hbFtTbmVha3NCcmlkZ2VdID0gTm9uZSkgLT4gTm9uZToKICAgICAgICBzZWxmLmJyaWRnZSA9IGJyaWRnZSBvciBnZXRfc25lYWtzX2JyaWRnZSgpCiAgICAgICAgc2VsZi5lbmFibGVkID0gVHJ1ZSAgIyBBbHdheXMgZW5hYmxlZDsgZGVncmFkZXMgdG8gbW9jayBpZiBicmlkZ2UgZG93bgogICAgICAgIGxvZ2dlci5pbmZvKCJHT0FUIHByb3ZpZGVyIGluaXRpYWxpemVkIChzbmVha3MtYnJpZGdlIGJhY2tlZCkiKQoKICAgIGRlZiBpc19jb25maWd1cmVkKHNlbGYpIC0+IGJvb2w6CiAgICAgICAgIiIiQ2hlY2sgaWYgcHJvdmlkZXIgaGFzIHJlYWwgZGF0YSBhY2Nlc3MuIiIiCiAgICAgICAgcmV0dXJuIHNlbGYuYnJpZGdlLmlzX2F2YWlsYWJsZSBpcyBub3QgRmFsc2UKCiAgICBhc3luYyBkZWYgX3NlYXJjaF9wcm9kdWN0KHNlbGYsIHNrdTogc3RyKSAtPiBPcHRpb25hbFtEaWN0W3N0ciwgQW55XV06CiAgICAgICAgIiIiU2VhcmNoIGZvciBhIHByb2R1Y3QgYnkgU0tVIHZpYSBzbmVha3MtYnJpZGdlLiIiIgogICAgICAgIHByb2R1Y3RzID0gYXdhaXQgc2VsZi5icmlkZ2Uuc2VhcmNoKHNrdSwgbGltaXQ9MykKICAgICAgICBpZiBub3QgcHJvZHVjdHM6CiAgICAgICAgICAgIHJldHVybiBOb25lCgogICAgICAgIGZvciBwIGluIHByb2R1Y3RzOgogICAgICAgICAgICBpZiBwLmdldCgic3R5bGVJRCIsICIiKS51cHBlcigpID09IHNrdS51cHBlcigpOgogICAgICAgICAgICAgICAgcmV0dXJuIHAKICAgICAgICByZXR1cm4gcHJvZHVjdHNbMF0KCiAgICBhc3luYyBkZWYgX2dldF9kZXRhaWxlZF9wcmljZXMoc2VsZiwgc3R5bGVfaWQ6IHN0cikgLT4gT3B0aW9uYWxbRGljdFtzdHIsIEFueV1dOgogICAgICAgICIiIkdldCBkZXRhaWxlZCBwZXItc2l6ZSBwcmljaW5nIHZpYSBzbmVha3MtYnJpZGdlLiIiIgogICAgICAgIHJldHVybiBhd2FpdCBzZWxmLmJyaWRnZS5nZXRfcHJpY2VzKHN0eWxlX2lkKQoKICAgIGRlZiBfZ2VuZXJhdGVfbW9ja19kYXRhKHNlbGYsIHNrdTogc3RyKSAtPiBEaWN0W3N0ciwgQW55XToKICAgICAgICAiIiJHZW5lcmF0ZSByZWFsaXN0aWMgbW9jayBkYXRhIGZvciBkZXZlbG9wbWVudC4iIiIKICAgICAgICBiYXNlX3ByaWNlID0gMTc1ICsgKGhhc2goc2t1KSAlIDE2MCkKICAgICAgICB2YXJpYW5jZSA9IChoYXNoKHNrdVs6Oi0xXSkgJSAyNSkgKyA4CgogICAgICAgIHJldHVybiB7CiAgICAgICAgICAgICJsb3dlc3RQcmljZU5ldyI6IGJhc2VfcHJpY2UgKyB2YXJpYW5jZSwKICAgICAgICAgICAgImxvd2VzdFByaWNlVXNlZCI6IGJhc2VfcHJpY2UgLSB2YXJpYW5jZSwKICAgICAgICAgICAgImluc3RhbnRTaGlwUHJpY2UiOiBiYXNlX3ByaWNlICsgdmFyaWFuY2UgKyAyMCwKICAgICAgICAgICAgImxhc3RTYWxlIjogYmFzZV9wcmljZSArICh2YXJpYW5jZSAvLyAzKSwKICAgICAgICAgICAgIm51bWJlck9mTGlzdGluZ3MiOiAyNSArIChoYXNoKHNrdSkgJSAxMDApLAogICAgICAgICAgICAicmV0YWlsUHJpY2UiOiAxNzAgKyAoaGFzaChza3UpICUgODApLAogICAgICAgIH0KCiAgICBhc3luYyBkZWYgZ2V0X3ByaWNlX3NuYXBzaG90KHNlbGYsIHNrdTogc3RyKSAtPiBQcmljZVNuYXBzaG90OgogICAgICAgICIiIgogICAgICAgIEdldCBwcmljZSBzbmFwc2hvdCBmb3IgYSBTS1UgZnJvbSBHT0FULgoKICAgICAgICBGbG93OgogICAgICAgIDEuIFNlYXJjaCBzbmVha3Mtc2VydmljZSBmb3IgdGhlIHByb2R1Y3QgYnkgU0tVCiAgICAgICAgMi4gVHJ5IHRvIGdldCBkZXRhaWxlZCBwZXItc2l6ZSBHT0FUIHByaWNpbmcKICAgICAgICAzLiBGYWxsIGJhY2sgdG8gc2VhcmNoLXJlc3VsdCBwcmljaW5nIChsb3dlc3RSZXNlbGxQcmljZS5nb2F0KQogICAgICAgIDQuIEZhbGwgYmFjayB0byBtb2NrIGRhdGEgaWYgc2VydmljZSBpcyBkb3duCiAgICAgICAgIiIiCiAgICAgICAgcHJvZHVjdCA9IGF3YWl0IHNlbGYuX3NlYXJjaF9wcm9kdWN0KHNrdSkKCiAgICAgICAgaWYgcHJvZHVjdDoKICAgICAgICAgICAgIyBFeHRyYWN0IEdPQVQgcHJpY2luZyBmcm9tIHNlYXJjaCByZXN1bHQKICAgICAgICAgICAgbG93ZXN0X3Jlc2VsbCA9IHByb2R1Y3QuZ2V0KCJsb3dlc3RSZXNlbGxQcmljZSIpCiAgICAgICAgICAgIHJlc2VsbF9saW5rcyA9IHByb2R1Y3QuZ2V0KCJyZXNlbGxMaW5rcyIpIG9yIHt9CiAgICAgICAgICAgIGJ1eV91cmwgPSByZXNlbGxfbGlua3MuZ2V0KCJnb2F0IikgICMgTm9uZSBpbiBtb2NrIG1vZGUKICAgICAgICAgICAgZ29hdF9wcmljZSA9IE5vbmUKICAgICAgICAgICAgaWYgaXNpbnN0YW5jZShsb3dlc3RfcmVzZWxsLCBkaWN0KToKICAgICAgICAgICAgICAgIGdvYXRfcHJpY2UgPSBsb3dlc3RfcmVzZWxsLmdldCgiZ29hdCIpCgogICAgICAgICAgICByZXRhaWwgPSBwcm9kdWN0LmdldCgicmV0YWlsUHJpY2UiKQoKICAgICAgICAgICAgIyBUcnkgdG8gZ2V0IGRldGFpbGVkIEdPQVQgcHJpY2luZwogICAgICAgICAgICBzdHlsZV9pZCA9IHByb2R1Y3QuZ2V0KCJzdHlsZUlEIiwgc2t1KQogICAgICAgICAgICBkZXRhaWxlZCA9IGF3YWl0IHNlbGYuX2dldF9kZXRhaWxlZF9wcmljZXMoc3R5bGVfaWQpCgogICAgICAgICAgICBnb2F0X3ByaWNlcyA9IHt9CiAgICAgICAgICAgIGltYWdlcyA9IFtdCiAgICAgICAgICAgIGlmIGRldGFpbGVkOgogICAgICAgICAgICAgICAgZ29hdF9wcmljZXMgPSBkZXRhaWxlZC5nZXQoImdvYXRQcmljZXMiLCB7fSkKICAgICAgICAgICAgICAgIGltZ19kYXRhID0gZGV0YWlsZWQuZ2V0KCJpbWFnZXMiLCB7fSkKICAgICAgICAgICAgICAgIGltYWdlcyA9IGltZ19kYXRhLmdldCgiYWRkaXRpb25hbCIsIFtdKQoKICAgICAgICAgICAgIyBJZiB3ZSBoYXZlIHBlci1zaXplIHByaWNlcywgY29tcHV0ZSBzdGF0cyBmcm9tIHRoZW0KICAgICAgICAgICAgaWYgZ29hdF9wcmljZXM6CiAgICAgICAgICAgICAgICBwcmljZXNfbGlzdCA9IFt2IGZvciB2IGluIGdvYXRfcHJpY2VzLnZhbHVlcygpIGlmIHYgYW5kIHYgPiAwXQogICAgICAgICAgICAgICAgbG93ZXN0ID0gbWluKHByaWNlc19saXN0KSBpZiBwcmljZXNfbGlzdCBlbHNlIGdvYXRfcHJpY2UKICAgICAgICAgICAgICAgIGhpZ2hlc3QgPSBtYXgocHJpY2VzX2xpc3QpIGlmIHByaWNlc19saXN0IGVsc2UgZ29hdF9wcmljZQogICAgICAgICAgICAgICAgYXZnID0gbWVhbihwcmljZXNfbGlzdCkgaWYgcHJpY2VzX2xpc3QgZWxzZSBnb2F0X3ByaWNlCiAgICAgICAgICAgICAgICBjb3VudCA9IGxlbihwcmljZXNfbGlzdCkKICAgICAgICAgICAgZWxzZToKICAgICAgICAgICAgICAgIGxvd2VzdCA9IGdvYXRfcHJpY2UKICAgICAgICAgICAgICAgIGhpZ2hlc3QgPSBnb2F0X3ByaWNlCiAgICAgICAgICAgICAgICBhdmcgPSBnb2F0X3ByaWNlCiAgICAgICAgICAgICAgICBjb3VudCA9IDEgaWYgZ29hdF9wcmljZSBlbHNlIDAKCiAgICAgICAgICAgIHJldHVybiBQcmljZVNuYXBzaG90KAogICAgICAgICAgICAgICAgc2t1PXNrdSwKICAgICAgICAgICAgICAgIGFzT2Y9ZGF0ZXRpbWUubm93KHRpbWV6b25lLnV0YykuaXNvZm9ybWF0KCksCiAgICAgICAgICAgICAgICByZXRhaWw9cmV0YWlsLAogICAgICAgICAgICAgICAgbG93ZXN0QXNrPWxvd2VzdCwKICAgICAgICAgICAgICAgIGhpZ2hlc3RCaWQ9Tm9uZSwgICMgR09BVCBkb2Vzbid0IGhhdmUgYSBiaWQgc3lzdGVtCiAgICAgICAgICAgICAgICBsYXN0U2FsZT1nb2F0X3ByaWNlLAogICAgICAgICAgICAgICAgYXZlcmFnZVByaWNlPWF2ZywKICAgICAgICAgICAgICAgIHNvdXJjZUJyZWFrZG93bj1bCiAgICAgICAgICAgICAgICAgICAgU291cmNlQnJlYWtkb3duKAogICAgICAgICAgICAgICAgICAgICAgICBzb3VyY2U9ImdvYXQiLAogICAgICAgICAgICAgICAgICAgICAgICBtZWRpYW49Z29hdF9wcmljZSwKICAgICAgICAgICAgICAgICAgICAgICAgY291bnQ9Y291bnQsCiAgICAgICAgICAgICAgICAgICAgICAgIGxvd2VzdD1sb3dlc3QsCiAgICAgICAgICAgICAgICAgICAgICAgIGhpZ2hlc3Q9aGlnaGVzdCwKICAgICAgICAgICAgICAgICAgICAgICAgYnV5VXJsPWJ1eV91cmwsCiAgICAgICAgICAgICAgICAgICAgKQogICAgICAgICAgICAgICAgXSwKICAgICAgICAgICAgKQoKICAgICAgICAjIEZhbGxiYWNrIHRvIG1vY2sgZGF0YQogICAgICAgIGxvZ2dlci5kZWJ1ZygiR09BVCB1c2luZyBtb2NrIGRhdGEgZm9yICVzIChzbmVha3Mtc2VydmljZSB1bmF2YWlsYWJsZSkiLCBza3UpCiAgICAgICAgbW9jayA9IHNlbGYuX2dlbmVyYXRlX21vY2tfZGF0YShza3UpCgogICAgICAgIGxvd2VzdF9uZXcgPSBtb2NrWyJsb3dlc3RQcmljZU5ldyJdCiAgICAgICAgbGFzdF9zYWxlID0gbW9ja1sibGFzdFNhbGUiXQogICAgICAgIHJldGFpbCA9IG1vY2tbInJldGFpbFByaWNlIl0KCiAgICAgICAgcHJpY2VzID0gW3AgZm9yIHAgaW4gW2xvd2VzdF9uZXcsIGxhc3Rfc2FsZV0gaWYgcCBhbmQgcCA+IDBdCiAgICAgICAgYXZnX3ByaWNlID0gbWVhbihwcmljZXMpIGlmIHByaWNlcyBlbHNlIE5vbmUKCiAgICAgICAgcmV0dXJuIFByaWNlU25hcHNob3QoCiAgICAgICAgICAgIHNrdT1za3UsCiAgICAgICAgICAgIGFzT2Y9ZGF0ZXRpbWUubm93KHRpbWV6b25lLnV0YykuaXNvZm9ybWF0KCksCiAgICAgICAgICAgIHJldGFpbD1yZXRhaWwsCiAgICAgICAgICAgIGxvd2VzdEFzaz1sb3dlc3RfbmV3LAogICAgICAgICAgICBoaWdoZXN0QmlkPU5vbmUsCiAgICAgICAgICAgIGxhc3RTYWxlPWxhc3Rfc2FsZSwKICAgICAgICAgICAgYXZlcmFnZVByaWNlPWF2Z19wcmljZSwKICAgICAgICAgICAgc291cmNlQnJlYWtkb3duPVsKICAgICAgICAgICAgICAgIFNvdXJjZUJyZWFrZG93bigKICAgICAgICAgICAgICAgICAgICBzb3VyY2U9ImdvYXQiLAogICAgICAgICAgICAgICAgICAgIG1lZGlhbj1sYXN0X3NhbGUsCiAgICAgICAgICAgICAgICAgICAgY291bnQ9bW9jay5nZXQoIm51bWJlck9mTGlzdGluZ3MiKSwKICAgICAgICAgICAgICAgICAgICBsb3dlc3Q9bW9jay5nZXQoImxvd2VzdFByaWNlVXNlZCIpLAogICAgICAgICAgICAgICAgICAgIGhpZ2hlc3Q9bW9jay5nZXQoImluc3RhbnRTaGlwUHJpY2UiKSwKICAgICAgICAgICAgICAgICkKICAgICAgICAgICAgXSwKICAgICAgICApCgogICAgYXN5bmMgZGVmIGdldF9zaXplX3ByaWNlcyhzZWxmLCBza3U6IHN0cikgLT4gRGljdFtzdHIsIERpY3Rbc3RyLCBmbG9hdF1dOgogICAgICAgICIiIkdldCBwcmljZXMgYnJva2VuIGRvd24gYnkgc2l6ZS4iIiIKICAgICAgICBwcm9kdWN0ID0gYXdhaXQgc2VsZi5fc2VhcmNoX3Byb2R1Y3Qoc2t1KQogICAgICAgIGlmIHByb2R1Y3Q6CiAgICAgICAgICAgIHN0eWxlX2lkID0gcHJvZHVjdC5nZXQoInN0eWxlSUQiLCBza3UpCiAgICAgICAgICAgIGRldGFpbGVkID0gYXdhaXQgc2VsZi5fZ2V0X2RldGFpbGVkX3ByaWNlcyhzdHlsZV9pZCkKICAgICAgICAgICAgaWYgZGV0YWlsZWQ6CiAgICAgICAgICAgICAgICBnb2F0ID0gZGV0YWlsZWQuZ2V0KCJnb2F0UHJpY2VzIiwge30pCiAgICAgICAgICAgICAgICBpZiBnb2F0OgogICAgICAgICAgICAgICAgICAgIHJldHVybiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHNpemU6IHsibmV3IjogcHJpY2V9CiAgICAgICAgICAgICAgICAgICAgICAgIGZvciBzaXplLCBwcmljZSBpbiBnb2F0Lml0ZW1zKCkKICAgICAgICAgICAgICAgICAgICAgICAgaWYgcHJpY2UgYW5kIHByaWNlID4gMAogICAgICAgICAgICAgICAgICAgIH0KCiAgICAgICAgIyBNb2NrIGZhbGxiYWNrCiAgICAgICAgYmFzZSA9IDE3NSArIChoYXNoKHNrdSkgJSAxMDApCiAgICAgICAgcmV0dXJuIHsKICAgICAgICAgICAgIjgiOiB7Im5ldyI6IGJhc2UgLSA1fSwKICAgICAgICAgICAgIjkiOiB7Im5ldyI6IGJhc2UgKyA1fSwKICAgICAgICAgICAgIjEwIjogeyJuZXciOiBiYXNlICsgMjB9LAogICAgICAgICAgICAiMTEiOiB7Im5ldyI6IGJhc2UgKyAxNX0sCiAgICAgICAgICAgICIxMiI6IHsibmV3IjogYmFzZSArIDEwfSwKICAgICAgICB9CgogICAgYXN5bmMgZGVmIGNsb3NlKHNlbGYpIC0+IE5vbmU6CiAgICAgICAgIiIiQ2xvc2UgdGhlIGJyaWRnZSBjbGllbnQuIiIiCiAgICAgICAgcGFzcwo=
+"""
+GOAT pricing via Sneaks-API bridge.
+
+Uses the sneaks-service Node.js microservice to get real-time
+GOAT pricing data.
+
+Falls back to mock data when the sneaks-service is unavailable.
+"""
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+from statistics import mean
+from typing import Optional, Dict, Any
+
+from app.schemas.price import PriceSnapshot, SourceBreakdown
+from app.services.pricing.base import PriceProvider
+from app.services.pricing.sneaks_bridge import SneaksBridge, get_sneaks_bridge
+
+logger = logging.getLogger("soleid.pricing.goat")
+
+
+class GoatPriceProvider(PriceProvider):
+    """GOAT pricing provider backed by Sneaks-API bridge."""
+
+    def __init__(self, bridge: Optional[SneaksBridge] = None) -> None:
+        self.bridge = bridge or get_sneaks_bridge()
+        self.enabled = True  # Always enabled; degrades to mock if bridge down
+        logger.info("GOAT provider initialized (sneaks-bridge backed)")
+
+    def is_configured(self) -> bool:
+        """Check if provider has real data access."""
+        return self.bridge.is_available is not False
+
+    async def _search_product(self, sku: str) -> Optional[Dict[str, Any]]:
+        """Search for a product by SKU via sneaks-bridge."""
+        products = await self.bridge.search(sku, limit=3)
+        if not products:
+            return None
+
+        for p in products:
+            if p.get("styleID", "").upper() == sku.upper():
+                return p
+        return products[0]
+
+    async def _get_detailed_prices(self, style_id: str) -> Optional[Dict[str, Any]]:
+        """Get detailed per-size pricing via sneaks-bridge."""
+        return await self.bridge.get_prices(style_id)
+
+    def _generate_mock_data(self, sku: str) -> Dict[str, Any]:
+        """Generate realistic mock data for development."""
+        base_price = 175 + (hash(sku) % 160)
+        variance = (hash(sku[::-1]) % 25) + 8
+
+        return {
+            "lowestPriceNew": base_price + variance,
+            "lowestPriceUsed": base_price - variance,
+            "instantShipPrice": base_price + variance + 20,
+            "lastSale": base_price + (variance // 3),
+            "numberOfListings": 25 + (hash(sku) % 100),
+            "retailPrice": 170 + (hash(sku) % 80),
+        }
+
+    async def get_price_snapshot(self, sku: str) -> PriceSnapshot:
+        """
+        Get price snapshot for a SKU from GOAT.
+
+        Flow:
+        1. Search sneaks-service for the product by SKU
+        2. Try to get detailed per-size GOAT pricing
+        3. Fall back to search-result pricing (lowestResellPrice.goat)
+        4. Fall back to mock data if service is down
+        """
+        product = await self._search_product(sku)
+
+        if product:
+            # Extract GOAT pricing from search result
+            lowest_resell = product.get("lowestResellPrice")
+            resell_links = product.get("resellLinks") or {}
+            buy_url = resell_links.get("goat")  # None in mock mode
+            goat_price = None
+            if isinstance(lowest_resell, dict):
+                goat_price = lowest_resell.get("goat")
+
+            retail = product.get("retailPrice")
+
+            # Try to get detailed GOAT pricing
+            style_id = product.get("styleID", sku)
+            detailed = await self._get_detailed_prices(style_id)
+
+            goat_prices = {}
+            images = []
+            if detailed:
+                goat_prices = detailed.get("goatPrices", {})
+                img_data = detailed.get("images", {})
+                images = img_data.get("additional", [])
+
+            # If we have per-size prices, compute stats from them
+            if goat_prices:
+                prices_list = [v for v in goat_prices.values() if v and v > 0]
+                lowest = min(prices_list) if prices_list else goat_price
+                highest = max(prices_list) if prices_list else goat_price
+                avg = mean(prices_list) if prices_list else goat_price
+                count = len(prices_list)
+            else:
+                lowest = goat_price
+                highest = goat_price
+                avg = goat_price
+                count = 1 if goat_price else 0
+
+            return PriceSnapshot(
+                sku=sku,
+                asOf=datetime.now(timezone.utc).isoformat(),
+                retail=retail,
+                lowestAsk=lowest,
+                highestBid=None,  # GOAT doesn't have a bid system
+                lastSale=goat_price,
+                averagePrice=avg,
+                sourceBreakdown=[
+                    SourceBreakdown(
+                        source="goat",
+                        median=goat_price,
+                        count=count,
+                        lowest=lowest,
+                        highest=highest,
+                        buyUrl=buy_url,
+                    )
+                ],
+            )
+
+        # Fallback to mock data
+        logger.debug("GOAT using mock data for %s (sneaks-service unavailable)", sku)
+        mock = self._generate_mock_data(sku)
+
+        lowest_new = mock["lowestPriceNew"]
+        last_sale = mock["lastSale"]
+        retail = mock["retailPrice"]
+
+        prices = [p for p in [lowest_new, last_sale] if p and p > 0]
+        avg_price = mean(prices) if prices else None
+
+        return PriceSnapshot(
+            sku=sku,
+            asOf=datetime.now(timezone.utc).isoformat(),
+            retail=retail,
+            lowestAsk=lowest_new,
+            highestBid=None,
+            lastSale=last_sale,
+            averagePrice=avg_price,
+            sourceBreakdown=[
+                SourceBreakdown(
+                    source="goat",
+                    median=last_sale,
+                    count=mock.get("numberOfListings"),
+                    lowest=mock.get("lowestPriceUsed"),
+                    highest=mock.get("instantShipPrice"),
+                )
+            ],
+        )
+
+    async def get_size_prices(self, sku: str) -> Dict[str, Dict[str, float]]:
+        """Get prices broken down by size."""
+        product = await self._search_product(sku)
+        if product:
+            style_id = product.get("styleID", sku)
+            detailed = await self._get_detailed_prices(style_id)
+            if detailed:
+                goat = detailed.get("goatPrices", {})
+                if goat:
+                    return {
+                        size: {"new": price}
+                        for size, price in goat.items()
+                        if price and price > 0
+                    }
+
+        # Mock fallback
+        base = 175 + (hash(sku) % 100)
+        return {
+            "8": {"new": base - 5},
+            "9": {"new": base + 5},
+            "10": {"new": base + 20},
+            "11": {"new": base + 15},
+            "12": {"new": base + 10},
+        }
+
+    async def close(self) -> None:
+        """Close the bridge client."""
+        pass
