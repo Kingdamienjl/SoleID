@@ -76,7 +76,7 @@ async def main() -> int:
         try:
             data = img_path.read_bytes()
             mime = MIME_BY_EXT.get(img_path.suffix.lower(), "image/jpeg")
-            result = await provider.identify(data, mime)
+            result = await provider.identify([(data, mime)])
             entry["model"] = result.model
             if not result.is_shoe or result.primary is None:
                 entry["error"] = "provider says not a shoe"

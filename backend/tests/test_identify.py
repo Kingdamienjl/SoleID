@@ -24,7 +24,19 @@ def _fake_user() -> FirebaseUser:
 
 
 def _img_bytes(color=(10, 20, 30)) -> bytes:
+    # Distinct geometry per color: solid-color images all share one
+    # perceptual hash, which would make every test hit the first test's
+    # L1 cache entry. The contrasting rectangle gives each color a
+    # distinct phash, like distinct real photos.
+    from PIL import ImageDraw
+
     img = Image.new("RGB", (64, 64), color=color)
+    r, g, b = color
+    x0, y0 = r % 32, g % 32
+    x1, y1 = min(x0 + 16 + (b % 16), 63), min(y0 + 16 + (b % 16), 63)
+    ImageDraw.Draw(img).rectangle(
+        [x0, y0, x1, y1], fill=(255 - r, 255 - g, 255 - b)
+    )
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
     return buf.getvalue()
@@ -37,9 +49,11 @@ class FakeProvider(VisionProvider):
     def __init__(self, result: VisionResult):
         self.result = result
         self.calls = 0
+        self.last_images = None
 
-    async def identify(self, image_bytes: bytes, mime_type: str) -> VisionResult:
+    async def identify(self, images) -> VisionResult:
         self.calls += 1
+        self.last_images = images
         return self.result
 
 
@@ -108,6 +122,16 @@ def _post(client: TestClient, color=(10, 20, 30)):
     )
 
 
+def _post_multi(client: TestClient, colors=((10, 20, 30), (200, 10, 10))):
+    return client.post(
+        "/identify",
+        files=[
+            ("images", (f"shoe{i}.jpg", io.BytesIO(_img_bytes(c)), "image/jpeg"))
+            for i, c in enumerate(colors)
+        ],
+    )
+
+
 def test_identify_requires_auth():
     client = TestClient(app, raise_server_exceptions=False)
     resp = _post(client)
@@ -135,13 +159,26 @@ def test_identify_happy_path(monkeypatch):
     assert data["skuVerified"] is True
     assert data["source"].startswith("vision:")
     assert data["prices"]["dataSource"] == "live"
+    assert data["needsSecondPhoto"] is False
 
 
-def test_identify_not_a_shoe(monkeypatch):
+def test_identify_not_a_shoe_single_photo_prompts_second(monkeypatch):
     monkeypatch.setenv("IDENTIFY_ENABLED", "1")
     provider = FakeProvider(VisionResult(is_shoe=False, model="fake-v1"))
     monkeypatch.setattr(identify_mod, "get_vision_providers", lambda: [provider])
     resp = _post(_client(), color=(10, 200, 10))
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["shoe"] is None
+    assert data["needsSecondPhoto"] is True
+    assert data["secondPhotoReason"] == "not_a_shoe"
+
+
+def test_identify_not_a_shoe_two_photos_is_400(monkeypatch):
+    monkeypatch.setenv("IDENTIFY_ENABLED", "1")
+    provider = FakeProvider(VisionResult(is_shoe=False, model="fake-v1"))
+    monkeypatch.setattr(identify_mod, "get_vision_providers", lambda: [provider])
+    resp = _post_multi(_client(), colors=((10, 200, 10), (11, 201, 11)))
     assert resp.status_code == 400
 
 
@@ -158,6 +195,8 @@ def test_identify_low_confidence_returns_candidates(monkeypatch):
     assert data["shoe"] is None
     assert len(data["candidates"]) >= 1
     assert data["candidates"][0]["brand"] == "Nike"
+    assert data["needsSecondPhoto"] is True
+    assert data["secondPhotoReason"] == "low_confidence"
 
 
 def test_identify_unverified_sku_returns_candidates(monkeypatch):
@@ -174,6 +213,8 @@ def test_identify_unverified_sku_returns_candidates(monkeypatch):
     data = resp.json()
     assert data["shoe"] is None
     assert data["skuVerified"] is False
+    assert data["needsSecondPhoto"] is True
+    assert data["secondPhotoReason"] == "unverified_sku"
 
 
 def test_identify_budget_exceeded(monkeypatch):
@@ -191,6 +232,46 @@ def test_identify_budget_exceeded(monkeypatch):
     assert resp.status_code == 429
 
 
+def test_identify_two_photos_reach_provider_together(monkeypatch):
+    monkeypatch.setenv("IDENTIFY_ENABLED", "1")
+    provider = FakeProvider(_jordan_result())
+    monkeypatch.setattr(identify_mod, "get_vision_providers", lambda: [provider])
+    monkeypatch.setattr(
+        identify_mod, "get_price_aggregator", lambda: FakeAggregator(_live_snapshot())
+    )
+    resp = _post_multi(_client(), colors=((30, 60, 90), (31, 61, 91)))
+    assert resp.status_code == 200
+    assert provider.calls == 1
+    assert len(provider.last_images) == 2
+    assert provider.last_images[0][1] == "image/jpeg"
+    data = resp.json()
+    assert data["shoe"]["styleId"] == "DZ5485-612"
+    assert data["needsSecondPhoto"] is False
+
+
+def test_identify_two_photos_still_uncertain_does_not_reprompt(monkeypatch):
+    monkeypatch.setenv("IDENTIFY_ENABLED", "1")
+    provider = FakeProvider(_jordan_result(confidence=0.4))
+    monkeypatch.setattr(identify_mod, "get_vision_providers", lambda: [provider])
+    monkeypatch.setattr(
+        identify_mod, "get_price_aggregator", lambda: FakeAggregator(_live_snapshot())
+    )
+    resp = _post_multi(_client(), colors=((40, 70, 100), (41, 71, 101)))
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["shoe"] is None
+    assert data["needsSecondPhoto"] is False
+    assert data["secondPhotoReason"] is None
+
+
+def test_identify_more_than_three_photos_is_400(monkeypatch):
+    monkeypatch.setenv("IDENTIFY_ENABLED", "1")
+    resp = _post_multi(
+        _client(), colors=((1, 2, 3), (4, 5, 6), (7, 8, 9), (10, 11, 12))
+    )
+    assert resp.status_code == 400
+
+
 def test_identify_second_call_hits_l1_cache(monkeypatch):
     import asyncio
 
@@ -202,8 +283,8 @@ def test_identify_second_call_hits_l1_cache(monkeypatch):
     img = _img_bytes(color=(99, 88, 77))
 
     async def _run():
-        first = await identify_mod.identify_shoe(img, "image/jpeg")
-        second = await identify_mod.identify_shoe(img, "image/jpeg")
+        first = await identify_mod.identify_shoe([(img, "image/jpeg")])
+        second = await identify_mod.identify_shoe([(img, "image/jpeg")])
         return first, second
 
     first, second = asyncio.run(_run())

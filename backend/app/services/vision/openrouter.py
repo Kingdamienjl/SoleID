@@ -10,14 +10,15 @@ from __future__ import annotations
 import base64
 import logging
 import os
+from typing import List
 
 import httpx
 
 from app.services.vision.base import (
-    IDENTIFY_PROMPT,
     VisionProvider,
     VisionProviderError,
     VisionResult,
+    identify_prompt,
     parse_vision_json,
 )
 
@@ -40,10 +41,18 @@ class OpenRouterVisionProvider(VisionProvider):
         models = os.getenv("OPENROUTER_VISION_MODELS", _DEFAULT_MODELS)
         self.models = [m.strip() for m in models.split(",") if m.strip()]
 
-    async def identify(self, image_bytes: bytes, mime_type: str) -> VisionResult:
+    async def identify(self, images: List[tuple[bytes, str]]) -> VisionResult:
         if not self.api_key:
             raise VisionProviderError("OPENROUTER_API_KEY is not configured")
-        data_url = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode()}"
+        image_parts = [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode()}"
+                },
+            }
+            for image_bytes, mime_type in images
+        ]
         errors: list[str] = []
         for model in self.models:
             payload = {
@@ -52,8 +61,8 @@ class OpenRouterVisionProvider(VisionProvider):
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": IDENTIFY_PROMPT},
-                            {"type": "image_url", "image_url": {"url": data_url}},
+                            {"type": "text", "text": identify_prompt(len(images))},
+                            *image_parts,
                         ],
                     }
                 ],

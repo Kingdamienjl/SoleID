@@ -11,6 +11,12 @@ After identification, the style code is verified against the pricing
 aggregator: it only counts as verified when a live (non-mock) listing with
 a buy URL exists. Low confidence or an unverifiable SKU returns candidate
 options instead of one confident answer.
+
+Two-photo flow: a request may carry 1-3 photos of the same shoe. The L1/L2
+caches apply to single-photo requests only — a multi-photo request always
+goes to vision with every angle, since the second photo exists to settle
+what the first left ambiguous. When a single-photo request ends uncertain,
+the response sets needsSecondPhoto so the client prompts for another angle.
 """
 from __future__ import annotations
 
@@ -18,7 +24,7 @@ import io
 import json
 import logging
 import os
-from typing import Optional
+from typing import List, Optional
 
 from PIL import Image
 
@@ -129,7 +135,7 @@ async def _l2_lookup(image_bytes: bytes) -> Optional[dict]:
         return None
 
 
-async def _vision_identify(image_bytes: bytes, mime_type: str) -> tuple[dict, str]:
+async def _vision_identify(images: List[tuple[bytes, str]]) -> tuple[dict, str]:
     providers = get_vision_providers()
     if not providers:
         raise NoProviderError(
@@ -139,7 +145,7 @@ async def _vision_identify(image_bytes: bytes, mime_type: str) -> tuple[dict, st
     for provider in providers:
         await check_budget(provider.est_cost_usd)  # BudgetExceeded propagates
         try:
-            result = await provider.identify(image_bytes, mime_type)
+            result = await provider.identify(images)
         except VisionProviderError as exc:
             errors.append(f"{provider.name}: {exc}")
             continue
@@ -154,7 +160,9 @@ async def _vision_identify(image_bytes: bytes, mime_type: str) -> tuple[dict, st
     raise NoProviderError("all vision providers failed: " + "; ".join(errors))
 
 
-async def _finalize(identification: dict, source: str) -> IdentifyResponse:
+async def _finalize(
+    identification: dict, source: str, *, single_photo: bool
+) -> IdentifyResponse:
     primary = ShoeCandidate(**identification["primary"])
     alternates = [ShoeCandidate(**a) for a in identification.get("alternates", [])]
 
@@ -186,6 +194,7 @@ async def _finalize(identification: dict, source: str) -> IdentifyResponse:
             skuVerified=sku_verified,
             prices=prices,
         )
+    reason = "low_confidence" if not confident else "unverified_sku"
     return IdentifyResponse(
         shoe=None,
         candidates=[primary, *alternates],
@@ -193,21 +202,30 @@ async def _finalize(identification: dict, source: str) -> IdentifyResponse:
         source=source,
         skuVerified=sku_verified,
         prices=None,
+        # Only a single-photo failure asks for a second angle — a request
+        # that already carried 2+ photos has nothing left to add.
+        needsSecondPhoto=single_photo,
+        secondPhotoReason=reason if single_photo else None,
     )
 
 
-async def identify_shoe(image_bytes: bytes, mime_type: str) -> IdentifyResponse:
-    phash = _phash_hex(image_bytes)
+async def identify_shoe(images: List[tuple[bytes, str]]) -> IdentifyResponse:
+    if not images:
+        raise ValueError("identify_shoe requires at least one image")
+    first_bytes = images[0][0]
+    phash = _phash_hex(first_bytes)
+    single_photo = len(images) == 1
 
-    cached = await _l1_lookup(phash)
-    if cached is not None:
-        return await _finalize(cached, "cache")
+    if single_photo:
+        cached = await _l1_lookup(phash)
+        if cached is not None:
+            return await _finalize(cached, "cache", single_photo=True)
 
-    cached = await _l2_lookup(image_bytes)
-    if cached is not None:
-        await _l1_store(phash, cached)
-        return await _finalize(cached, "qdrant_cache")
+        cached = await _l2_lookup(first_bytes)
+        if cached is not None:
+            await _l1_store(phash, cached)
+            return await _finalize(cached, "qdrant_cache", single_photo=True)
 
-    identification, source = await _vision_identify(image_bytes, mime_type)
+    identification, source = await _vision_identify(images)
     await _l1_store(phash, identification)
-    return await _finalize(identification, source)
+    return await _finalize(identification, source, single_photo=single_photo)

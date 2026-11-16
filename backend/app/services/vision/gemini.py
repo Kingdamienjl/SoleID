@@ -10,14 +10,15 @@ from __future__ import annotations
 import base64
 import logging
 import os
+from typing import List
 
 import httpx
 
 from app.services.vision.base import (
-    IDENTIFY_PROMPT,
     VisionProvider,
     VisionProviderError,
     VisionResult,
+    identify_prompt,
     parse_vision_json,
 )
 
@@ -34,23 +35,21 @@ class GeminiVisionProvider(VisionProvider):
         self.api_key = os.getenv("GEMINI_API_KEY", "")
         self.model = os.getenv("GEMINI_VISION_MODEL", "gemini-2.0-flash")
 
-    async def identify(self, image_bytes: bytes, mime_type: str) -> VisionResult:
+    async def identify(self, images: List[tuple[bytes, str]]) -> VisionResult:
         if not self.api_key:
             raise VisionProviderError("GEMINI_API_KEY is not configured")
-        payload = {
-            "contents": [
+        parts: List[dict] = [{"text": identify_prompt(len(images))}]
+        for image_bytes, mime_type in images:
+            parts.append(
                 {
-                    "parts": [
-                        {"text": IDENTIFY_PROMPT},
-                        {
-                            "inline_data": {
-                                "mime_type": mime_type,
-                                "data": base64.b64encode(image_bytes).decode(),
-                            }
-                        },
-                    ]
+                    "inline_data": {
+                        "mime_type": mime_type,
+                        "data": base64.b64encode(image_bytes).decode(),
+                    }
                 }
-            ],
+            )
+        payload = {
+            "contents": [{"parts": parts}],
             "generationConfig": {
                 "response_mime_type": "application/json",
                 "temperature": 0.1,

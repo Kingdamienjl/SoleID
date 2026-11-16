@@ -52,6 +52,18 @@ Rules:
 - "alternates" holds up to 2 other plausible identifications, best first.
 - No prose, no markdown — JSON only."""
 
+MULTI_PHOTO_PREAMBLE = """The attached photos show the SAME shoe from different angles (for example a side shot and a top-down shot). Use all of them together to identify it — a detail visible in one angle may settle what another leaves ambiguous. If the photos appear to show different shoes, identify the shoe in the FIRST photo.
+
+"""
+
+
+def identify_prompt(image_count: int) -> str:
+    """Prompt for an identify call. Multi-photo calls get a preamble so the
+    model treats the images as angles of one shoe, not separate shoes."""
+    if image_count > 1:
+        return MULTI_PHOTO_PREAMBLE + IDENTIFY_PROMPT
+    return IDENTIFY_PROMPT
+
 
 _FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
@@ -94,6 +106,10 @@ class VisionProvider(ABC):
     est_cost_usd: float = 0.0  # estimated cost per identify call, for budgeting
 
     @abstractmethod
-    async def identify(self, image_bytes: bytes, mime_type: str) -> VisionResult:
-        """Identify the shoe in an image. Raises VisionProviderError on failure."""
+    async def identify(self, images: List[tuple[bytes, str]]) -> VisionResult:
+        """Identify the shoe in one or more photos of the same shoe.
+
+        images is a list of (image_bytes, mime_type) pairs; a single-photo
+        call passes a one-element list. Raises VisionProviderError on failure.
+        """
         raise NotImplementedError
